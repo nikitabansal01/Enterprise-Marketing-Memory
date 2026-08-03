@@ -6,14 +6,34 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import StudioExecution, {
   type ExecutionTab,
 } from '../components/studio/StudioExecution'
 import StatusBadge from '../components/ui/StatusBadge'
+import { restPath } from '../lib/phases'
 import { roleById, STUDIO_ROLES, type StudioRole } from '../lib/roles'
 
 type StudioMode = 'canvas' | ExecutionTab
 type Tool = 'select' | 'pan' | 'comment' | 'pin'
+
+function modeFromPath(pathname: string): StudioMode {
+  const rest = restPath(pathname, 'p1')
+  if (
+    rest === 'workflow' ||
+    rest === 'approvals' ||
+    rest === 'connectors' ||
+    rest === 'governance'
+  ) {
+    return rest
+  }
+  return 'canvas'
+}
+
+function pathForMode(mode: StudioMode): string {
+  if (mode === 'canvas') return '/p1'
+  return `/p1/${mode}`
+}
 type NodeKind =
   | 'brief'
   | 'memory'
@@ -99,7 +119,7 @@ const initialNodes: CanvasNode[] = [
     x: 520,
     y: 380,
     w: 310,
-    title: 'Enterprise Marketing Memory',
+    title: 'Brand Memory',
     body: 'Problem → proof → CTA\nSingle CTA per channel\nNo hype language\nPrimary blue CTA treatment\nPlainspoken voice rules',
     meta: '94% confidence',
     tone: 'emerald',
@@ -371,8 +391,16 @@ const toneChip: Record<NonNullable<CanvasNode['tone']>, string> = {
 }
 
 export default function CampaignStudio() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [role, setRole] = useState<StudioRole>('marketer')
-  const [mode, setMode] = useState<StudioMode>('canvas')
+  const mode = modeFromPath(location.pathname)
+
+  function setMode(next: StudioMode) {
+    const href = pathForMode(next)
+    if (href !== location.pathname) navigate(href)
+  }
+
   const [nodes, setNodes] = useState<CanvasNode[]>(initialNodes)
   const [edges, setEdges] = useState<Edge[]>(initialEdges)
   const [comments, setComments] = useState<Comment[]>([
@@ -838,7 +866,6 @@ export default function CampaignStudio() {
       <header className="z-20 flex shrink-0 flex-col gap-3 border-b border-border bg-white/90 px-4 py-2.5 backdrop-blur-md lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 flex-wrap items-center gap-3">
           <div className="min-w-0">
-            <p className="eyebrow">Campaign Studio</p>
             <h1 className="truncate text-[15px] font-semibold tracking-tight text-foreground">
               Q3 Webinar Launch
             </h1>

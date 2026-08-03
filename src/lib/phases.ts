@@ -2,12 +2,12 @@ export type Phase = 'p0' | 'p1' | 'p2'
 
 export const PHASES: {
   id: Phase
+  code: string
   name: string
-  stage: string
 }[] = [
-  { id: 'p0', name: 'Enterprise Marketing Memory', stage: 'MVP - P0' },
-  { id: 'p1', name: 'Campaign Studio', stage: 'P1' },
-  { id: 'p2', name: 'Marketing Intelligence', stage: 'P2' },
+  { id: 'p0', code: 'P0', name: 'Enterprise Marketing Memory' },
+  { id: 'p1', code: 'P1', name: 'Campaign Studio' },
+  { id: 'p2', code: 'P2', name: 'Marketing Intelligence' },
 ]
 
 export function isPhase(value: string | undefined): value is Phase {

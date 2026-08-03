@@ -263,7 +263,7 @@ const memoryTimelineSeed: MemoryEvent[] = [
     id: 'm1',
     kind: 'accepted',
     title: 'Single-CTA webinar heroes',
-    detail: 'Approved and written into Enterprise Marketing Memory.',
+    detail: 'Approved and written into brand memory.',
     time: '2h ago',
   },
   {
@@ -327,13 +327,13 @@ export default function CampaignIntelligence() {
         kind: 'accepted',
         title: rec.memoryRule,
         detail:
-          'You approved this — now permanent in Enterprise Marketing Memory.',
+          'You approved this — now permanent in brand memory.',
         time: 'Just now',
       },
       ...prev,
     ])
     setToast({
-      eyebrow: 'Enterprise Marketing Memory',
+      eyebrow: 'Brand memory',
       title: 'Accepted into marketing memory',
       detail: `I’ll apply “${rec.memoryRule}” on the next draft.`,
     })
@@ -366,11 +366,10 @@ export default function CampaignIntelligence() {
 
       <header className="page-header max-w-3xl">
         <p className="eyebrow text-brand-600">AI Marketing Strategist</p>
-        <h1 className="page-title">Marketing Intelligence</h1>
+        <h1 className="page-title">Before your next campaign</h1>
         <p className="page-subtitle max-w-2xl">
-          A briefing before your next campaign — what the market is doing, what
-          your company is learning, what to change, and what should become
-          permanent in Enterprise Marketing Memory.
+          What the market is doing, what your company is learning, what to change,
+          and what should become permanent in brand memory.
         </p>
       </header>
 
@@ -612,7 +611,7 @@ export default function CampaignIntelligence() {
                           onClick={() => accept(rec.id)}
                           className="btn-primary w-full px-3 py-2.5 text-[12px]"
                         >
-                          Accept into Enterprise Marketing Memory
+                          Accept into brand memory
                         </button>
                         <button
                           type="button"
@@ -653,7 +652,7 @@ export default function CampaignIntelligence() {
         <div className="page-header">
           <p className="eyebrow">Memory Evolution</p>
           <h2 className="text-xl font-semibold tracking-tight text-foreground">
-            How Enterprise Marketing Memory evolves
+            How brand memory evolves
           </h2>
           <p className="page-subtitle">
             Accepted recommendations, reusable patterns, emerging observations,

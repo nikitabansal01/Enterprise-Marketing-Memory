@@ -33,6 +33,11 @@ export default function App() {
 
           <Route path="p1">
             <Route index element={<CampaignStudio />} />
+            <Route path="canvas" element={<Navigate to="/p1" replace />} />
+            <Route path="workflow" element={<CampaignStudio />} />
+            <Route path="approvals" element={<CampaignStudio />} />
+            <Route path="connectors" element={<CampaignStudio />} />
+            <Route path="governance" element={<CampaignStudio />} />
             <Route path="*" element={<Navigate to="/p1" replace />} />
           </Route>
 

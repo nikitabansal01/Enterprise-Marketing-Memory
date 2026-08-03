@@ -61,20 +61,6 @@ function ChartIcon({ className }: { className?: string }) {
   )
 }
 
-function InfoIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.3" />
-      <path
-        d="M8 7.2v3.3M8 5.3h.01"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-      />
-    </svg>
-  )
-}
-
 function BellIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -120,23 +106,12 @@ export default function PhaseSwitcher() {
   const currentRest = restPath(location.pathname, phase)
 
   return (
-    <header className="shrink-0 border-b border-border bg-surface px-5 py-3.5 sm:px-8">
-      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between xl:gap-6">
-        <div className="min-w-0 shrink-0">
-          <h1 className="text-[13px] font-semibold tracking-tight text-foreground">
-            Enterprise Marketing Memory
-          </h1>
-          <p className="meta mt-0.5 flex items-center gap-1">
-            Product roadmap
-            <span title="Each phase includes everything from the previous phases plus new capabilities.">
-              <InfoIcon className="size-3.5 text-slate-400" />
-            </span>
-          </p>
-        </div>
-
+    <header className="shrink-0 border-b border-border bg-surface px-5 py-3 sm:px-8">
+      <div className="flex items-center justify-between gap-4">
         <nav
-          className="flex min-w-0 flex-1 items-center justify-start gap-1.5 overflow-x-auto xl:justify-center"
-          aria-label="Product roadmap phases"
+          className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto"
+          aria-label="Product phases"
+          title="Each phase includes everything from the previous phases plus new capabilities."
         >
           {PHASES.map((item, index) => {
             const active = item.id === phase
@@ -144,55 +119,47 @@ export default function PhaseSwitcher() {
             const isLast = index === PHASES.length - 1
 
             return (
-              <div key={item.id} className="flex shrink-0 items-center gap-1.5">
+              <div key={item.id} className="flex shrink-0 items-center gap-1">
                 <NavLink
                   to={phasePath(item.id, currentRest)}
                   aria-current={active ? 'step' : undefined}
+                  aria-label={`${item.code} ${item.name}`}
+                  title={`${item.code} ${item.name}`}
                   className={[
-                    'flex min-w-[10.5rem] items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all duration-150 ease-out',
+                    'flex items-center gap-2 rounded-xl border px-2.5 py-2 transition-all duration-150 ease-out',
                     active
-                      ? 'border-brand-400 bg-brand-50 text-brand-700 shadow-[var(--shadow-soft)]'
-                      : 'border-border bg-white text-muted hover:border-brand-200 hover:bg-slate-50 hover:text-foreground',
+                      ? 'min-w-0 border-brand-400 bg-brand-50 text-brand-700 shadow-[var(--shadow-soft)]'
+                      : 'border-transparent bg-transparent text-muted hover:border-border hover:bg-slate-50 hover:text-foreground',
                   ].join(' ')}
                 >
                   <Icon
                     className={[
-                      'size-4 shrink-0',
+                      'size-3.5 shrink-0',
                       active ? 'text-brand-600' : 'text-slate-400',
                     ].join(' ')}
                   />
-                  <span className="min-w-0 text-left">
-                    <span
-                      className={[
-                        'block text-[13px] font-semibold tracking-tight',
-                        active ? 'text-brand-700' : 'text-foreground',
-                      ].join(' ')}
-                    >
-                      {item.name}
-                    </span>
-                    <span
-                      className={[
-                        'block text-[11px]',
-                        active ? 'text-brand-600' : 'text-slate-400',
-                      ].join(' ')}
-                    >
-                      {item.stage}
-                    </span>
+                  <span
+                    className={[
+                      'text-[12px] font-semibold tracking-tight',
+                      active ? 'text-brand-700' : 'text-slate-500',
+                    ].join(' ')}
+                  >
+                    <span className={active ? 'opacity-70' : ''}>{item.code}</span>
+                    {active && (
+                      <span className="ml-1.5 hidden sm:inline">{item.name}</span>
+                    )}
                   </span>
                 </NavLink>
 
                 {!isLast && (
-                  <ChevronIcon className="size-3.5 shrink-0 text-slate-300" />
+                  <ChevronIcon className="size-3 shrink-0 text-slate-300" />
                 )}
               </div>
             )
           })}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2.5 self-end xl:self-auto">
-          <span className="rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-medium text-brand-700">
-            MVP Roadmap
-          </span>
+        <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
             className="flex size-8 items-center justify-center rounded-full text-slate-400 transition-colors duration-150 hover:bg-slate-50 hover:text-foreground"

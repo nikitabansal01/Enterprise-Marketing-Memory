@@ -24,7 +24,7 @@ export default function AppLayout() {
           ].join(' ')}
         >
           <div
-            key={`${phase}:${location.pathname}`}
+            key={studio ? 'p1-studio' : `${phase}:${location.pathname}`}
             className={studio ? 'page-enter h-full min-h-0' : 'page-enter min-h-full'}
           >
             <Outlet />

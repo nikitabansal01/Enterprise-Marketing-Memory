@@ -817,7 +817,7 @@ function GovernancePanel({
       </section>
 
       <section className="surface-card p-5">
-        <p className="eyebrow">Enterprise memory</p>
+        <p className="eyebrow">Brand memory</p>
         <h2 className="mt-1.5 text-sm font-semibold tracking-tight text-foreground">
           Memory governance
         </h2>

@@ -1,173 +1,177 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useId, useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { phaseFromPath, phasePath, restPath } from '../../lib/phases'
+import { phaseFromPath, phasePath, restPath, type Phase } from '../../lib/phases'
 
+type IconProps = { className?: string }
 type ChildLink = {
   path: string
   label: string
-  icon: (props: { className?: string }) => ReactNode
+  icon: (props: IconProps) => ReactNode
+  /** Treat empty rest as active (e.g. Canvas at /p1) */
+  matchEmpty?: boolean
 }
 
-function HomeIcon({ className }: { className?: string }) {
+function IconShell({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path
-        d="M2.5 7.5 8 2.5l5.5 5V13a1 1 0 0 1-1 1H3.5a1 1 0 0 1-1-1V7.5Z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      <path d="M6 14v-4.5h4V14" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+    <svg
+      className={className}
+      viewBox="0 0 16 16"
+      fill="none"
+      aria-hidden="true"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {children}
     </svg>
   )
 }
 
-function MemoryIcon({ className }: { className?: string }) {
+function HomeIcon({ className }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path
-        d="M8 2.5v11M4.5 5.5 8 2.5l3.5 3M4.5 10.5 8 13.5l3.5-3"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <IconShell className={className}>
+      <path d="M2.5 7.5 8 2.5l5.5 5V13a1 1 0 0 1-1 1H3.5a1 1 0 0 1-1-1V7.5Z" />
+      <path d="M6 14v-4.5h4V14" />
+    </IconShell>
   )
 }
 
-function TeachIcon({ className }: { className?: string }) {
+function MemoryIcon({ className }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path
-        d="M2.5 5.5 8 2.5l5.5 3-5.5 3-5.5-3Z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M4 7.2v3.3c0 .8 1.8 2 4 2s4-1.2 4-2V7.2"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-    </svg>
+    <IconShell className={className}>
+      <path d="M8 2.5v11M4.5 5.5 8 2.5l3.5 3M4.5 10.5 8 13.5l3.5-3" />
+    </IconShell>
   )
 }
 
-function ReviewIcon({ className }: { className?: string }) {
+function TeachIcon({ className }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="8" cy="8" r="5.25" stroke="currentColor" strokeWidth="1.4" />
-      <path
-        d="M5.5 8.2 7.2 9.9 10.5 6.3"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <IconShell className={className}>
+      <path d="M2.5 5.5 8 2.5l5.5 3-5.5 3-5.5-3Z" />
+      <path d="M4 7.2v3.3c0 .8 1.8 2 4 2s4-1.2 4-2V7.2" />
+    </IconShell>
   )
 }
 
-function DraftIcon({ className }: { className?: string }) {
+function ReviewIcon({ className }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path
-        d="M4 2.5h5.5L12.5 5.5V13.5H4V2.5Z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      <path d="M9.5 2.5V5.5H12.5" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      <path d="M6 8.5h4M6 11h2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
+    <IconShell className={className}>
+      <circle cx="8" cy="8" r="5.25" />
+      <path d="M5.5 8.2 7.2 9.9 10.5 6.3" />
+    </IconShell>
   )
 }
 
-function ExportIcon({ className }: { className?: string }) {
+function DraftIcon({ className }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path
-        d="M8 2.5v7.5M5.5 5.5 8 2.5l2.5 3"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M3.5 10.5v2a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1v-2"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-    </svg>
+    <IconShell className={className}>
+      <path d="M4 2.5h5.5L12.5 5.5V13.5H4V2.5Z" />
+      <path d="M9.5 2.5V5.5H12.5" />
+      <path d="M6 8.5h4M6 11h2.5" />
+    </IconShell>
   )
 }
 
-function StudioIcon({ className }: { className?: string }) {
+function ExportIcon({ className }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <rect x="2.5" y="2.5" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.4" />
-      <rect x="8.5" y="2.5" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.4" />
-      <rect x="2.5" y="8.5" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.4" />
-      <rect x="8.5" y="8.5" width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.4" />
-    </svg>
+    <IconShell className={className}>
+      <path d="M8 2.5v7.5M5.5 5.5 8 2.5l2.5 3" />
+      <path d="M3.5 10.5v2a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1v-2" />
+    </IconShell>
   )
 }
 
-function InsightIcon({ className }: { className?: string }) {
+function StudioIcon({ className }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path
-        d="M3.5 12.5v-3M6.5 12.5v-6M9.5 12.5v-4M12.5 12.5v-8"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-    </svg>
+    <IconShell className={className}>
+      <rect x="2.5" y="2.5" width="5" height="5" rx="1.2" />
+      <rect x="8.5" y="2.5" width="5" height="5" rx="1.2" />
+      <rect x="2.5" y="8.5" width="5" height="5" rx="1.2" />
+      <rect x="8.5" y="8.5" width="5" height="5" rx="1.2" />
+    </IconShell>
   )
 }
 
-function AdminIcon({ className }: { className?: string }) {
+function CanvasNavIcon({ className }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="8" cy="5.5" r="2.25" stroke="currentColor" strokeWidth="1.4" />
-      <path
-        d="M3.5 13c.6-2.2 2.2-3.5 4.5-3.5s3.9 1.3 4.5 3.5"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-    </svg>
+    <IconShell className={className}>
+      <rect x="2.5" y="3.5" width="11" height="9" rx="1.5" />
+      <path d="M2.5 6.5h11" />
+    </IconShell>
   )
 }
 
-function SettingsIcon({ className }: { className?: string }) {
+function WorkflowNavIcon({ className }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="8" cy="8" r="2.25" stroke="currentColor" strokeWidth="1.4" />
-      <path
-        d="M8 2.5v1.25M8 12.25V13.5M13.5 8h-1.25M3.75 8H2.5M11.9 4.1l-.88.88M4.98 11.02l-.88.88M11.9 11.9l-.88-.88M4.98 4.98l-.88-.88"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-    </svg>
+    <IconShell className={className}>
+      <circle cx="4" cy="4" r="1.5" />
+      <circle cx="12" cy="8" r="1.5" />
+      <circle cx="4" cy="12" r="1.5" />
+      <path d="M5.5 4.5 10.5 7.5M5.5 11.5 10.5 8.5" />
+    </IconShell>
   )
 }
 
-function ChevronIcon({ className }: { className?: string }) {
+function ApprovalsNavIcon({ className }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path
-        d="M6 4 10 8 6 12"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <IconShell className={className}>
+      <path d="M3.5 4.5h9v8.5H6L3.5 15V4.5Z" />
+      <path d="M6 8.2 7.4 9.6 10.2 6.6" />
+    </IconShell>
+  )
+}
+
+function ConnectorsNavIcon({ className }: IconProps) {
+  return (
+    <IconShell className={className}>
+      <path d="M6.5 3.5v3M9.5 3.5v3" />
+      <path d="M5 6.5h6v2.2a3 3 0 0 1-3 3h0a3 3 0 0 1-3-3V6.5Z" />
+      <path d="M8 11.7V13.5" />
+    </IconShell>
+  )
+}
+
+function InsightIcon({ className }: IconProps) {
+  return (
+    <IconShell className={className}>
+      <path d="M3.5 12.5v-3M6.5 12.5v-6M9.5 12.5v-4M12.5 12.5v-8" />
+    </IconShell>
+  )
+}
+
+function WorkspaceIcon({ className }: IconProps) {
+  return (
+    <IconShell className={className}>
+      <path d="M2.5 5.5h11v7.5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1V5.5Z" />
+      <path d="M2.5 5.5 4 3h3l1.5 2.5h5" />
+    </IconShell>
+  )
+}
+
+function AdminIcon({ className }: IconProps) {
+  return (
+    <IconShell className={className}>
+      <circle cx="8" cy="5.5" r="2.25" />
+      <path d="M3.5 13c.6-2.2 2.2-3.5 4.5-3.5s3.9 1.3 4.5 3.5" />
+    </IconShell>
+  )
+}
+
+function SettingsIcon({ className }: IconProps) {
+  return (
+    <IconShell className={className}>
+      <circle cx="8" cy="8" r="2.25" />
+      <path d="M8 2.5v1.25M8 12.25V13.5M13.5 8h-1.25M3.75 8H2.5M11.9 4.1l-.88.88M4.98 11.02l-.88.88M11.9 11.9l-.88-.88M4.98 4.98l-.88-.88" />
+    </IconShell>
+  )
+}
+
+function ChevronIcon({ className }: IconProps) {
+  return (
+    <IconShell className={className}>
+      <path d="M6 4 10 8 6 12" strokeWidth="1.5" />
+    </IconShell>
   )
 }
 
@@ -178,31 +182,80 @@ const memoryChildren: ChildLink[] = [
   { path: 'export', label: 'Export & Publish', icon: ExportIcon },
 ]
 
+const studioChildren: ChildLink[] = [
+  { path: 'canvas', label: 'Canvas', icon: CanvasNavIcon, matchEmpty: true },
+  { path: 'workflow', label: 'Workflow', icon: WorkflowNavIcon },
+  { path: 'approvals', label: 'Approvals', icon: ApprovalsNavIcon },
+  { path: 'connectors', label: 'Connectors', icon: ConnectorsNavIcon },
+]
+
 const workspaceChildren: ChildLink[] = [
   { path: 'validate', label: 'Administration', icon: AdminIcon },
   { path: 'settings', label: 'Settings', icon: SettingsIcon },
 ]
 
-function childActive(pathname: string, childPath: string) {
-  const phase = phaseFromPath(pathname)
+function childActive(pathname: string, child: ChildLink, phase: Phase = 'p0') {
+  const current = phaseFromPath(pathname)
+  if (current !== phase) return false
   const rest = restPath(pathname, phase)
-  return rest === childPath || rest.startsWith(`${childPath}/`)
-}
-
-function rowClass(active: boolean) {
-  return [
-    'flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-all duration-150',
-    active
-      ? 'bg-brand-50 text-brand-700 shadow-[inset_3px_0_0_0_var(--color-brand-600)]'
-      : 'text-muted hover:bg-slate-50 hover:text-foreground',
-  ].join(' ')
+  if (child.matchEmpty && (rest === '' || rest === child.path)) return true
+  return rest === child.path || rest.startsWith(`${child.path}/`)
 }
 
 function PhaseBadge({ label }: { label: string }) {
+  return <span className="app-sidebar__badge">{label}</span>
+}
+
+function NavChildren({
+  id,
+  open,
+  items,
+  phase,
+}: {
+  id: string
+  open: boolean
+  items: ChildLink[]
+  phase: Phase
+}) {
+  const location = useLocation()
+
   return (
-    <span className="status-badge status-badge--brand !px-1.5 !py-0.5 text-[10px] font-semibold">
-      {label}
-    </span>
+    <div
+      id={id}
+      className="app-sidebar__panel"
+      data-open={open ? 'true' : 'false'}
+      {...(!open ? { inert: true } : {})}
+    >
+      <div className="app-sidebar__panel-inner">
+        <ul className="app-sidebar__children" role="list">
+          {items.map((child) => {
+            const active = childActive(location.pathname, child, phase)
+            const Icon = child.icon
+            const href =
+              child.matchEmpty && child.path === 'canvas'
+                ? phasePath(phase)
+                : phasePath(phase, child.path)
+            return (
+              <li key={child.label}>
+                <NavLink
+                  to={href}
+                  end={child.matchEmpty}
+                  className={[
+                    'app-sidebar__item app-sidebar__item--child',
+                    active ? 'is-active' : '',
+                  ].join(' ')}
+                  aria-current={active ? 'page' : undefined}
+                  tabIndex={open ? undefined : -1}
+                >
+                  <Icon className="app-sidebar__icon" />
+                  <span className="app-sidebar__label">{child.label}</span>
+                </NavLink>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+    </div>
   )
 }
 
@@ -210,13 +263,20 @@ export default function Sidebar() {
   const location = useLocation()
   const phase = phaseFromPath(location.pathname)
   const rest = restPath(location.pathname, phase)
+  const uid = useId()
+  const memoryPanelId = `${uid}-memory`
+  const studioPanelId = `${uid}-studio`
+  const workspacePanelId = `${uid}-workspace`
 
   const homeActive = phase === 'p0' && rest === ''
   const memoryChildActive = memoryChildren.some((child) =>
-    childActive(location.pathname, child.path),
+    childActive(location.pathname, child, 'p0'),
+  )
+  const studioChildActive = studioChildren.some((child) =>
+    childActive(location.pathname, child, 'p1'),
   )
   const workspaceChildActive = workspaceChildren.some((child) =>
-    childActive(location.pathname, child.path),
+    childActive(location.pathname, child, 'p0'),
   )
   const studioActive = phase === 'p1'
   const intelligenceActive = phase === 'p2'
@@ -229,187 +289,142 @@ export default function Sidebar() {
 
   useEffect(() => {
     if (memoryPhaseActive) setMemoryOpen(true)
-    setStudioOpen(studioActive)
+    if (studioActive) setStudioOpen(true)
     setIntelligenceOpen(intelligenceActive)
     if (workspaceChildActive) setWorkspaceOpen(true)
   }, [memoryPhaseActive, studioActive, intelligenceActive, workspaceChildActive])
 
   return (
-    <aside className="flex h-full w-[15.5rem] shrink-0 flex-col border-r border-border bg-surface">
-      <div className="px-4 py-4">
-        <p className="truncate text-[13px] font-semibold tracking-tight text-foreground">
-          Enterprise Marketing Memory
-        </p>
+    <aside className="app-sidebar" aria-label="Product navigation">
+      <div className="app-sidebar__brand">
+        <p className="app-sidebar__brand-title">Marketing OS</p>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-5 px-2.5 pb-6">
-        <NavLink to={phasePath('p0')} end className={() => rowClass(homeActive)}>
-          <HomeIcon className="size-3.5 shrink-0 opacity-80" />
-          <span>Home</span>
+      <nav className="app-sidebar__nav">
+        <NavLink
+          to={phasePath('p0')}
+          end
+          className={['app-sidebar__item app-sidebar__item--top', homeActive ? 'is-active' : ''].join(
+            ' ',
+          )}
+          aria-current={homeActive ? 'page' : undefined}
+        >
+          <span className="app-sidebar__chevron-slot" aria-hidden="true" />
+          <HomeIcon className="app-sidebar__icon" />
+          <span className="app-sidebar__label">Home</span>
         </NavLink>
 
-        <div>
+        <div className="app-sidebar__divider" role="separator" />
+
+        <div className="app-sidebar__group">
           <button
             type="button"
-            onClick={() => setMemoryOpen((open) => !open)}
             className={[
-              'flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[13px] font-medium transition-all duration-150',
-              memoryPhaseActive
-                ? 'text-foreground'
-                : 'text-muted hover:bg-slate-50 hover:text-foreground',
+              'app-sidebar__item app-sidebar__item--phase',
+              memoryPhaseActive ? 'is-current' : '',
             ].join(' ')}
             aria-expanded={memoryOpen}
+            aria-controls={memoryPanelId}
+            onClick={() => setMemoryOpen((open) => !open)}
           >
             <ChevronIcon
               className={[
-                'size-3.5 shrink-0 text-slate-400 transition-transform duration-150',
-                memoryOpen ? 'rotate-90' : '',
+                'app-sidebar__chevron',
+                memoryOpen ? 'is-open' : '',
               ].join(' ')}
             />
-            <MemoryIcon className="size-3.5 shrink-0 opacity-80" />
-            <span className="min-w-0 flex-1 truncate">Enterprise Marketing Memory</span>
+            <MemoryIcon className="app-sidebar__icon" />
+            <span className="app-sidebar__label">Enterprise Marketing Memory</span>
             <PhaseBadge label="P0" />
           </button>
-
-          {memoryOpen && (
-            <div className="mt-1.5 ml-3 space-y-0.5 border-l border-border pl-2.5">
-              {memoryChildren.map((child) => {
-                const active = childActive(location.pathname, child.path)
-                const Icon = child.icon
-                return (
-                  <NavLink
-                    key={child.label}
-                    to={phasePath('p0', child.path)}
-                    className={rowClass(active)}
-                  >
-                    <Icon className="size-3.5 shrink-0 opacity-80" />
-                    <span className="truncate">{child.label}</span>
-                  </NavLink>
-                )
-              })}
-            </div>
-          )}
+          <NavChildren
+            id={memoryPanelId}
+            open={memoryOpen}
+            items={memoryChildren}
+            phase="p0"
+          />
         </div>
 
-        <div className="flex items-center gap-0.5">
+        <div className="app-sidebar__group">
           <button
             type="button"
-            onClick={() => {
-              if (studioActive) setStudioOpen((open) => !open)
-            }}
             className={[
-              'flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors',
-              studioActive
-                ? 'text-brand-700 hover:bg-brand-100/60'
-                : 'text-slate-400 hover:bg-slate-50 hover:text-foreground',
+              'app-sidebar__item app-sidebar__item--phase',
+              studioActive || studioChildActive ? 'is-current' : '',
             ].join(' ')}
             aria-expanded={studioOpen}
-            aria-label="Toggle Campaign Studio"
+            aria-controls={studioPanelId}
+            onClick={() => setStudioOpen((open) => !open)}
           >
             <ChevronIcon
               className={[
-                'size-3.5 transition-transform duration-150',
-                studioOpen ? 'rotate-90' : '',
+                'app-sidebar__chevron',
+                studioOpen ? 'is-open' : '',
               ].join(' ')}
             />
-          </button>
-          <NavLink
-            to="/p1"
-            end
-            className={() =>
-              [
-                'flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2 py-2 text-[13px] font-medium transition-all duration-150',
-                studioActive
-                  ? 'bg-brand-50 text-brand-700 shadow-[inset_3px_0_0_0_var(--color-brand-600)]'
-                  : 'text-muted hover:bg-slate-50 hover:text-foreground',
-              ].join(' ')
-            }
-          >
-            <StudioIcon className="size-3.5 shrink-0 opacity-80" />
-            <span className="min-w-0 flex-1 truncate">Campaign Studio</span>
+            <StudioIcon className="app-sidebar__icon" />
+            <span className="app-sidebar__label">Campaign Studio</span>
             <PhaseBadge label="P1" />
-          </NavLink>
+          </button>
+          <NavChildren
+            id={studioPanelId}
+            open={studioOpen}
+            items={studioChildren}
+            phase="p1"
+          />
         </div>
 
-        <div className="flex items-center gap-0.5">
-          <button
-            type="button"
-            onClick={() => {
-              if (intelligenceActive) setIntelligenceOpen((open) => !open)
-            }}
-            className={[
-              'flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors',
-              intelligenceActive
-                ? 'text-brand-700 hover:bg-brand-100/60'
-                : 'text-slate-400 hover:bg-slate-50 hover:text-foreground',
-            ].join(' ')}
-            aria-expanded={intelligenceOpen}
-            aria-label="Toggle Marketing Intelligence"
-          >
-            <ChevronIcon
-              className={[
-                'size-3.5 transition-transform duration-150',
-                intelligenceOpen ? 'rotate-90' : '',
-              ].join(' ')}
-            />
-          </button>
+        <div className="app-sidebar__group">
           <NavLink
             to="/p2"
             end
-            className={() =>
-              [
-                'flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2 py-2 text-[13px] font-medium transition-all duration-150',
-                intelligenceActive
-                  ? 'bg-brand-50 text-brand-700 shadow-[inset_3px_0_0_0_var(--color-brand-600)]'
-                  : 'text-muted hover:bg-slate-50 hover:text-foreground',
-              ].join(' ')
-            }
+            className={[
+              'app-sidebar__item app-sidebar__item--phase',
+              intelligenceActive ? 'is-active' : '',
+            ].join(' ')}
+            aria-current={intelligenceActive ? 'page' : undefined}
+            aria-expanded={intelligenceOpen}
           >
-            <InsightIcon className="size-3.5 shrink-0 opacity-80" />
-            <span className="min-w-0 flex-1 truncate">Marketing Intelligence</span>
+            <ChevronIcon
+              className={[
+                'app-sidebar__chevron',
+                intelligenceOpen ? 'is-open' : '',
+              ].join(' ')}
+            />
+            <InsightIcon className="app-sidebar__icon" />
+            <span className="app-sidebar__label">Marketing Intelligence</span>
             <PhaseBadge label="P2" />
           </NavLink>
         </div>
 
-        <div>
+        <div className="app-sidebar__divider" role="separator" />
+
+        <div className="app-sidebar__group">
           <button
             type="button"
-            onClick={() => setWorkspaceOpen((open) => !open)}
             className={[
-              'flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[13px] font-medium transition-all duration-150',
-              workspaceChildActive
-                ? 'text-foreground'
-                : 'text-muted hover:bg-slate-50 hover:text-foreground',
+              'app-sidebar__item app-sidebar__item--phase',
+              workspaceChildActive ? 'is-current' : '',
             ].join(' ')}
             aria-expanded={workspaceOpen}
+            aria-controls={workspacePanelId}
+            onClick={() => setWorkspaceOpen((open) => !open)}
           >
             <ChevronIcon
               className={[
-                'size-3.5 shrink-0 text-slate-400 transition-transform duration-150',
-                workspaceOpen ? 'rotate-90' : '',
+                'app-sidebar__chevron',
+                workspaceOpen ? 'is-open' : '',
               ].join(' ')}
             />
-            <span className="min-w-0 flex-1 truncate">Workspace</span>
+            <WorkspaceIcon className="app-sidebar__icon" />
+            <span className="app-sidebar__label">Workspace</span>
           </button>
-
-          {workspaceOpen && (
-            <div className="mt-1.5 ml-3 space-y-0.5 border-l border-border pl-2.5">
-              {workspaceChildren.map((child) => {
-                const active = childActive(location.pathname, child.path)
-                const Icon = child.icon
-                return (
-                  <NavLink
-                    key={child.path}
-                    to={phasePath('p0', child.path)}
-                    className={rowClass(active)}
-                  >
-                    <Icon className="size-3.5 shrink-0 opacity-80" />
-                    <span className="truncate">{child.label}</span>
-                  </NavLink>
-                )
-              })}
-            </div>
-          )}
+          <NavChildren
+            id={workspacePanelId}
+            open={workspaceOpen}
+            items={workspaceChildren}
+            phase="p0"
+          />
         </div>
       </nav>
     </aside>
