@@ -120,7 +120,7 @@ export default function Dashboard() {
 
       <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="page-header">
-          <h1 className="page-title">Enterprise Marketing Memory</h1>
+          <h1 className="page-title">Home</h1>
           <p className="page-subtitle">
             I’m solid on voice and visuals. A few learnings still need your judgment
             before I treat them as law.

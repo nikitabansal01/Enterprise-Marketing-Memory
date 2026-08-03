@@ -36,9 +36,7 @@ export default function MemoryCreatedCelebration() {
         <p className="text-[11px] font-medium tracking-[0.04em] text-brand-600 uppercase">
           Memory is ready
         </p>
-        <h1 className="page-title">
-          Enterprise Marketing Memory Created
-        </h1>
+        <h1 className="page-title">Brand memory created</h1>
         <p className="page-subtitle mx-auto">
           I’m ready when you are — I remember voice, visuals, and what good campaigns look like.
         </p>

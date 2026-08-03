@@ -44,7 +44,7 @@ const milestones: Milestone[] = [
   },
   {
     id: 'memory',
-    label: 'Building Enterprise Marketing Memory',
+    label: 'Building brand memory',
     delay: 6000,
   },
 ]
