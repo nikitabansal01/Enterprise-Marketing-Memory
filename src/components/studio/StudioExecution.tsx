@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { roleById, type StudioRole } from '../../lib/roles'
+import type { SelectionContext } from '../../lib/aiConversation'
 import MemoryToast, { type MemoryToastPayload } from '../ui/MemoryToast'
 import StatusBadge from '../ui/StatusBadge'
 
@@ -184,12 +185,16 @@ type StudioExecutionProps = {
   tab: ExecutionTab
   onTabChange: (tab: ExecutionTab) => void
   role: StudioRole
+  onSelectContext?: (ctx: SelectionContext) => void
+  onAskAi?: (prompt: string) => void
 }
 
 export default function StudioExecution({
   tab,
   onTabChange,
   role,
+  onSelectContext,
+  onAskAi,
 }: StudioExecutionProps) {
   const perms = roleById(role)
   const [approvals, setApprovals] = useState(approvalSeed)
@@ -418,13 +423,21 @@ export default function StudioExecution({
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto p-5 sm:p-6">
-        {tab === 'workflow' && <WorkflowPanel approvals={approvals} />}
+        {tab === 'workflow' && (
+          <WorkflowPanel
+            approvals={approvals}
+            onSelectContext={onSelectContext}
+            onAskAi={onAskAi}
+          />
+        )}
         {tab === 'approvals' && (
           <ApprovalsPanel
             approvals={approvals}
             role={role}
             canActOnStage={canActOnStage}
             onAdvance={advanceApproval}
+            onSelectContext={onSelectContext}
+            onAskAi={onAskAi}
           />
         )}
         {tab === 'connectors' && (
@@ -450,9 +463,26 @@ export default function StudioExecution({
   )
 }
 
-function WorkflowPanel({ approvals }: { approvals: ApprovalStage[] }) {
+function WorkflowPanel({
+  approvals,
+  onSelectContext,
+  onAskAi,
+}: {
+  approvals: ApprovalStage[]
+  onSelectContext?: (ctx: SelectionContext) => void
+  onAskAi?: (prompt: string) => void
+}) {
   const statusFor = (id: WorkflowStep['id']) =>
     approvals.find((a) => a.id === id)?.status ?? 'Pending'
+
+  function selectStep(step: WorkflowStep) {
+    onSelectContext?.({
+      kind: 'workflow-node',
+      ids: [step.id],
+      labels: [step.label],
+      summary: `Workflow node: ${step.label}`,
+    })
+  }
 
   return (
     <div className="mx-auto grid max-w-5xl gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
@@ -481,7 +511,17 @@ function WorkflowPanel({ approvals }: { approvals: ApprovalStage[] }) {
 
               return (
                 <li key={step.id} className="flex w-full flex-col items-center">
-                  <article className="surface-card-interactive w-full rounded-2xl border border-border bg-white p-4 shadow-[var(--shadow-soft)]">
+                  <article
+                    className="surface-card-interactive w-full rounded-2xl border border-border bg-white p-4 shadow-[var(--shadow-soft)]"
+                    tabIndex={0}
+                    onClick={() => selectStep(step)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        selectStep(step)
+                      }
+                    }}
+                  >
                     <div className="flex items-start gap-3">
                       <span
                         className={[
@@ -516,6 +556,23 @@ function WorkflowPanel({ approvals }: { approvals: ApprovalStage[] }) {
                             {badge}
                           </StatusBadge>
                         </div>
+                        {onAskAi && (
+                          <button
+                            type="button"
+                            className="mt-2 text-[11px] font-medium text-brand-700 hover:text-brand-800"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              selectStep(step)
+                              onAskAi(
+                                step.id === 'legal'
+                                  ? 'Add legal approval before publishing.'
+                                  : `Explain what should happen at the “${step.label}” step.`,
+                              )
+                            }}
+                          >
+                            Ask AI
+                          </button>
+                        )}
                       </div>
                     </div>
                   </article>
@@ -567,13 +624,26 @@ function ApprovalsPanel({
   role,
   canActOnStage,
   onAdvance,
+  onSelectContext,
+  onAskAi,
 }: {
   approvals: ApprovalStage[]
   role: StudioRole
   canActOnStage: (stage: ApprovalStage) => boolean
   onAdvance: (id: ApprovalStage['id']) => void
+  onSelectContext?: (ctx: SelectionContext) => void
+  onAskAi?: (prompt: string) => void
 }) {
   const perms = roleById(role)
+
+  function selectApproval(step: ApprovalStage) {
+    onSelectContext?.({
+      kind: 'approval',
+      ids: [step.id],
+      labels: [step.label],
+      summary: `Approval step: ${step.label} (${step.status})`,
+    })
+  }
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -600,7 +670,17 @@ function ApprovalsPanel({
           const actionable = canActOnStage(step)
           return (
             <li key={step.id}>
-              <article className="surface-card flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between">
+              <article
+                className="surface-card flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between"
+                tabIndex={0}
+                onClick={() => selectApproval(step)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    selectApproval(step)
+                  }
+                }}
+              >
                 <div className="flex min-w-0 items-start gap-3">
                   <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-[11px] font-semibold text-brand-700">
                     {step.initials}
@@ -619,13 +699,33 @@ function ApprovalsPanel({
                       {step.note}
                     </p>
                     <p className="meta mt-1.5">{step.time}</p>
+                    {onAskAi && (
+                      <button
+                        type="button"
+                        className="mt-2 text-[11px] font-medium text-brand-700 hover:text-brand-800"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          selectApproval(step)
+                          onAskAi(
+                            step.id === 'legal'
+                              ? 'Add legal approval before publishing.'
+                              : `What does Brand Memory expect at “${step.label}”?`,
+                          )
+                        }}
+                      >
+                        Ask AI
+                      </button>
+                    )}
                   </div>
                 </div>
 
                 {actionable && (
                   <button
                     type="button"
-                    onClick={() => onAdvance(step.id)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onAdvance(step.id)
+                    }}
                     className="btn-primary shrink-0 !px-3 !py-1.5 text-[12px]"
                   >
                     {step.id === 'draft'

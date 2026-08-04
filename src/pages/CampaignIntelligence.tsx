@@ -2,6 +2,7 @@ import { useState } from 'react'
 import ConfidenceBar from '../components/ui/ConfidenceBar'
 import MemoryToast, { type MemoryToastPayload } from '../components/ui/MemoryToast'
 import StatusBadge from '../components/ui/StatusBadge'
+import { useAiConversation } from '../lib/aiConversation'
 
 type RecStatus = 'pending' | 'accepted' | 'ignored'
 type EvidenceOpen = string | null
@@ -308,12 +309,29 @@ const kindTone: Record<
 }
 
 export default function CampaignIntelligence() {
+  const { askIntelligence, setSelection } = useAiConversation()
   const [statuses, setStatuses] = useState<Record<string, RecStatus>>(() =>
     Object.fromEntries(recommendationsSeed.map((r) => [r.id, 'pending'])),
   )
   const [evidenceOpen, setEvidenceOpen] = useState<EvidenceOpen>(null)
   const [timeline, setTimeline] = useState<MemoryEvent[]>(memoryTimelineSeed)
   const [toast, setToast] = useState<MemoryToastPayload | null>(null)
+
+  const intelPrompts = [
+    'Why are you recommending this?',
+    'Compare this trend with our previous campaigns.',
+    'Which recommendation has the highest expected impact?',
+  ] as const
+
+  function askAboutRec(rec: Recommendation, prompt?: string) {
+    setSelection({
+      kind: 'asset',
+      ids: [rec.id],
+      labels: [rec.title],
+      summary: `Recommendation: ${rec.title} · impact ${rec.impact} · confidence ${rec.confidence}%`,
+    })
+    askIntelligence(prompt ?? `Why are you recommending “${rec.title}”?`)
+  }
 
   function accept(id: string) {
     const rec = recommendationsSeed.find((r) => r.id === id)
@@ -371,6 +389,18 @@ export default function CampaignIntelligence() {
           What the market is doing, what your company is learning, what to change,
           and what should become permanent in brand memory.
         </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {intelPrompts.map((prompt) => (
+            <button
+              key={prompt}
+              type="button"
+              onClick={() => askIntelligence(prompt)}
+              className="ai-chip"
+            >
+              {prompt}
+            </button>
+          ))}
+        </div>
       </header>
 
       {/* Section 1 — External Market Intelligence */}
@@ -621,6 +651,13 @@ export default function CampaignIntelligence() {
                           className="btn-secondary w-full px-3 py-2.5 text-[12px]"
                         >
                           {showEvidence ? 'Hide evidence' : 'Review Evidence'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => askAboutRec(rec)}
+                          className="btn-secondary w-full px-3 py-2.5 text-[12px]"
+                        >
+                          Ask AI why
                         </button>
                         <button
                           type="button"

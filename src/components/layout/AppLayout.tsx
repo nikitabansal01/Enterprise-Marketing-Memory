@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom'
+import AiWorkspaceShell from '../ai/AiWorkspaceShell'
 import { phaseFromPath } from '../../lib/phases'
 import PhaseSwitcher from './PhaseSwitcher'
 import Sidebar from './Sidebar'
@@ -20,15 +21,20 @@ export default function AppLayout() {
         <main
           className={[
             'min-w-0 flex-1 bg-canvas',
-            studio ? 'overflow-hidden p-0' : 'overflow-auto px-6 py-7 sm:px-8 lg:px-10',
+            studio ? 'overflow-hidden p-0' : 'overflow-hidden',
           ].join(' ')}
         >
-          <div
-            key={studio ? 'p1-studio' : `${phase}:${location.pathname}`}
-            className={studio ? 'page-enter h-full min-h-0' : 'page-enter min-h-full'}
-          >
-            <Outlet />
-          </div>
+          <AiWorkspaceShell>
+            <div
+              key={studio ? 'p1-studio' : `${phase}:${location.pathname}`}
+              className={[
+                studio ? 'page-enter h-full min-h-0' : 'page-enter min-h-full overflow-auto',
+                studio ? '' : 'px-6 py-7 sm:px-8 lg:px-10',
+              ].join(' ')}
+            >
+              <Outlet />
+            </div>
+          </AiWorkspaceShell>
         </main>
       </div>
     </div>

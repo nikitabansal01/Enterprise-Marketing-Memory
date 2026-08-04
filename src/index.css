@@ -915,6 +915,370 @@ body {
   .app-sidebar__children > li + li {
     margin-top: 0.0625rem;
   }
+
+  /* —— Adaptive AI workspace —— */
+
+  .ai-workspace {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .ai-workspace--split {
+    align-items: stretch;
+  }
+
+  .ai-workspace__main {
+    position: relative;
+    display: flex;
+    min-height: 0;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  .ai-workspace__ask {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    z-index: 30;
+  }
+
+  .ai-workspace--split .ai-panel {
+    animation: ai-panel-in var(--duration-slow) var(--ease-out-soft) both;
+  }
+
+  .ai-workspace--split .ai-workspace__main {
+    animation: ai-main-settle var(--duration-slow) var(--ease-out-soft) both;
+  }
+
+  .ai-chip {
+    border: 1px solid var(--color-border);
+    border-radius: 0.625rem;
+    background: var(--color-surface);
+    padding: 0.4rem 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-foreground);
+    box-shadow: var(--shadow-soft);
+    transition:
+      border-color var(--duration-fast) var(--ease-out-soft),
+      background-color var(--duration-fast) var(--ease-out-soft),
+      color var(--duration-fast) var(--ease-out-soft);
+  }
+
+  .ai-chip:hover:not(:disabled) {
+    border-color: var(--color-brand-200);
+    background: var(--color-brand-50);
+    color: var(--color-brand-800);
+  }
+
+  .ai-chip:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .ai-welcome {
+    display: flex;
+    width: 100%;
+    justify-content: stretch;
+    padding: 1.5rem 0 0.5rem;
+  }
+
+  .ai-welcome__hero {
+    width: 100%;
+    max-width: none;
+  }
+
+  .ai-welcome__title {
+    margin-top: 0.5rem;
+    font-size: clamp(1.5rem, 2.4vw, 1.875rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    color: var(--color-foreground);
+  }
+
+  .ai-welcome__lede {
+    margin-top: 0.5rem;
+    max-width: 34rem;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: var(--color-muted);
+  }
+
+  .ai-welcome__composer {
+    margin-top: 1.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+    background: var(--color-surface);
+    padding: 0.875rem;
+    box-shadow: var(--shadow-lift);
+  }
+
+  .ai-welcome__input {
+    width: 100%;
+    resize: vertical;
+    border: 0;
+    background: transparent;
+    padding: 0.35rem 0.25rem;
+    font: inherit;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--color-foreground);
+    outline: none;
+  }
+
+  .ai-welcome__input::placeholder {
+    color: #94a3b8;
+  }
+
+  .ai-welcome__actions {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .ai-welcome__starters {
+    margin-top: 1.5rem;
+  }
+
+  .ai-welcome-page {
+    width: 100%;
+  }
+
+  .ai-welcome-page .ai-welcome,
+  .ai-welcome-page .ai-example-dashboard {
+    width: 100%;
+  }
+
+  .ai-welcome-page .ai-welcome__composer {
+    width: 100%;
+  }
+
+  .ai-example-dashboard {
+    margin-top: 0.5rem;
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: 1.25rem;
+    opacity: 0.72;
+    filter: saturate(0.92);
+  }
+
+  .ai-example-dashboard__label {
+    border-left: 2px solid var(--color-brand-300);
+    padding-left: 0.75rem;
+  }
+
+  .ai-panel {
+    position: relative;
+    display: flex;
+    min-width: 16rem;
+    max-width: 40%;
+    flex-shrink: 0;
+    flex-direction: column;
+    border-right: 1px solid var(--color-border);
+    background: #fbfcfd;
+  }
+
+  .ai-panel__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--color-border);
+    padding: 0.875rem 1rem;
+    background: var(--color-surface);
+  }
+
+  .ai-panel__selection {
+    border-bottom: 1px solid var(--color-brand-100);
+    background: var(--color-brand-50);
+    padding: 0.625rem 1rem;
+  }
+
+  .ai-panel__messages {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.625rem;
+    overflow: auto;
+    padding: 0.875rem 1rem;
+  }
+
+  .ai-panel__bubble {
+    max-width: 95%;
+    border-radius: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+
+  .ai-panel__bubble--user {
+    align-self: flex-end;
+    background: var(--color-brand-600);
+    color: white;
+  }
+
+  .ai-panel__bubble--assistant {
+    align-self: flex-start;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-foreground);
+  }
+
+  .ai-panel__thinking {
+    font-size: 0.75rem;
+    color: var(--color-muted);
+  }
+
+  .ai-understanding {
+    border-top: 1px solid var(--color-border);
+    max-height: 40%;
+    overflow: auto;
+    padding: 0.75rem 1rem 0.5rem;
+    background: var(--color-surface);
+  }
+
+  .ai-panel__composer {
+    border-top: 1px solid var(--color-border);
+    padding: 0.75rem 1rem 0.875rem;
+    background: var(--color-surface);
+  }
+
+  .ai-panel__input {
+    width: 100%;
+    resize: none;
+    border: 1px solid var(--color-border);
+    border-radius: 0.625rem;
+    background: #f8fafc;
+    padding: 0.5rem 0.625rem;
+    font: inherit;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--color-foreground);
+    outline: none;
+  }
+
+  .ai-panel__input:focus {
+    border-color: var(--color-brand-300);
+    background: white;
+  }
+
+  .ai-panel__icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    padding: 0.375rem;
+    color: var(--color-muted);
+    transition:
+      background-color var(--duration-fast) var(--ease-out-soft),
+      color var(--duration-fast) var(--ease-out-soft);
+  }
+
+  .ai-panel__icon-btn:hover {
+    background: #f1f5f9;
+    color: var(--color-foreground);
+  }
+
+  .ai-panel__icon-btn[aria-pressed='true'] {
+    background: var(--color-brand-50);
+    color: var(--color-brand-700);
+  }
+
+  .ai-panel__resize {
+    position: absolute;
+    top: 0;
+    right: -3px;
+    z-index: 5;
+    width: 6px;
+    height: 100%;
+    cursor: col-resize;
+  }
+
+  .ai-panel__resize:hover,
+  .ai-panel__resize:focus-visible {
+    background: rgb(37 99 235 / 0.18);
+  }
+
+  .ai-output {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 1.25rem;
+    overflow: auto;
+    padding: 1.5rem 1.5rem 2rem;
+  }
+
+  .ai-output--empty {
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .ai-output__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .ai-output__grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  }
+
+  .ai-asset {
+    border: 1px solid var(--color-border);
+    border-radius: 0.875rem;
+    background: var(--color-surface);
+    padding: 1rem;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .ai-asset__visual {
+    margin-top: 0.75rem;
+    display: flex;
+    min-height: 7.5rem;
+    align-items: flex-end;
+    border-radius: 0.625rem;
+    background:
+      linear-gradient(160deg, #e8eef8 0%, #f4f7fb 45%, #dfe8f4 100%);
+    padding: 0.75rem;
+    font-size: 0.6875rem;
+    line-height: 1.4;
+    color: #64748b;
+  }
+}
+
+@keyframes ai-panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ai-main-settle {
+  from {
+    opacity: 0.92;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -932,6 +1296,8 @@ body {
   .campaign-canvas__edge,
   .campaign-canvas__comment,
   .campaign-canvas__ai-pulse,
+  .ai-workspace--split .ai-panel,
+  .ai-workspace--split .ai-workspace__main,
   .stagger > * {
     animation: none !important;
   }
@@ -954,7 +1320,9 @@ body {
   .app-sidebar__item,
   .app-sidebar__chevron,
   .app-sidebar__icon,
-  .app-sidebar__panel {
+  .app-sidebar__panel,
+  .ai-chip,
+  .ai-panel__icon-btn {
     transition: none !important;
   }
 

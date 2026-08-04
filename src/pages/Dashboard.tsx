@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import AiWelcome from '../components/ai/AiWelcome'
 import ConfidenceBar from '../components/ui/ConfidenceBar'
 import MemoryToast, { type MemoryToastPayload } from '../components/ui/MemoryToast'
 import StatusBadge from '../components/ui/StatusBadge'
+import { useAiConversation } from '../lib/aiConversation'
 import { usePhaseHref } from '../lib/usePhase'
 
 const metrics = [
@@ -88,7 +90,7 @@ function ChevronIcon({ className }: { className?: string }) {
   )
 }
 
-export default function Dashboard() {
+function DashboardBody({ example = false }: { example?: boolean }) {
   const learnBrandHref = usePhaseHref('learn-brand')
   const createCampaignHref = usePhaseHref('create-campaign')
   const [resolutions, setResolutions] = useState<Record<string, 'kept' | 'left'>>(
@@ -115,47 +117,60 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="page-shell h-full">
+    <div className={example ? 'ai-example-dashboard' : 'page-shell h-full'}>
       <MemoryToast toast={toast} onDismiss={() => setToast(null)} />
+
+      {example && (
+        <div className="ai-example-dashboard__label">
+          <span className="eyebrow">Example content</span>
+          <p className="meta mt-0.5">Sample dashboard — secondary while you start a campaign</p>
+        </div>
+      )}
 
       <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="page-header">
-          <h1 className="page-title">Home</h1>
-          <p className="page-subtitle">
-            I’m solid on voice and visuals. A few learnings still need your judgment
-            before I treat them as law.
-          </p>
+          <h1 className={example ? 'text-base font-semibold tracking-tight' : 'page-title'}>
+            Home
+          </h1>
+          {!example && (
+            <p className="page-subtitle">
+              I’m solid on voice and visuals. A few learnings still need your judgment
+              before I treat them as law.
+            </p>
+          )}
         </div>
 
-        <label className="relative block w-full max-w-sm">
-          <span className="sr-only">Search marketing memory</span>
-          <svg
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400"
-            viewBox="0 0 16 16"
-            fill="none"
-            aria-hidden="true"
-          >
-            <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.5" />
-            <path
-              d="M10.5 10.5 13.5 13.5"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
+        {!example && (
+          <label className="relative block w-full max-w-sm">
+            <span className="sr-only">Search marketing memory</span>
+            <svg
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400"
+              viewBox="0 0 16 16"
+              fill="none"
+              aria-hidden="true"
+            >
+              <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.5" />
+              <path
+                d="M10.5 10.5 13.5 13.5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+            <input
+              type="search"
+              placeholder="Search memory, campaigns, rules…"
+              className="field-input py-2.5 pr-4 pl-9"
             />
-          </svg>
-          <input
-            type="search"
-            placeholder="Search memory, campaigns, rules…"
-            className="field-input py-2.5 pr-4 pl-9"
-          />
-        </label>
+          </label>
+        )}
       </header>
 
       <div className="grid flex-1 gap-5 lg:grid-cols-[minmax(0,1fr)_17.5rem]">
         <section className="surface-card p-6">
           <div className="mb-7">
             <h2 className="text-base font-semibold tracking-tight text-foreground">
-              What memory holds
+              Campaign dashboard
             </h2>
             <p className="mt-1.5 text-sm leading-relaxed text-muted">
               Shared brand knowledge across campaigns, channels, and rules.
@@ -240,14 +255,16 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-2.5">
-            <Link to={learnBrandHref} className="btn-primary">
-              Teach AI Your Brand
-            </Link>
-            <Link to={createCampaignHref} className="btn-secondary">
-              Create First Draft
-            </Link>
-          </div>
+          {!example && (
+            <div className="mt-8 flex flex-wrap gap-2.5">
+              <Link to={learnBrandHref} className="btn-primary">
+                Teach AI Your Brand
+              </Link>
+              <Link to={createCampaignHref} className="btn-secondary">
+                Create First Draft
+              </Link>
+            </div>
+          )}
         </section>
 
         <aside className="surface-card fade-in p-6" style={{ animationDelay: '80ms' }}>
@@ -315,6 +332,25 @@ export default function Dashboard() {
           </ul>
         </aside>
       </div>
+    </div>
+  )
+}
+
+export default function Dashboard() {
+  const { showWelcome } = useAiConversation()
+
+  if (showWelcome) {
+    return (
+      <div className="ai-welcome-page mx-auto flex w-full max-w-5xl flex-col gap-10">
+        <AiWelcome />
+        <DashboardBody example />
+      </div>
+    )
+  }
+
+  return (
+    <div className="relative">
+      <DashboardBody />
     </div>
   )
 }

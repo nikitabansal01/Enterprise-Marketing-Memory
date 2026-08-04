@@ -11,6 +11,7 @@ import StudioExecution, {
   type ExecutionTab,
 } from '../components/studio/StudioExecution'
 import StatusBadge from '../components/ui/StatusBadge'
+import { useAiConversation, type SelectionKind } from '../lib/aiConversation'
 import { restPath } from '../lib/phases'
 import { roleById, STUDIO_ROLES, type StudioRole } from '../lib/roles'
 
@@ -393,8 +394,15 @@ const toneChip: Record<NonNullable<CanvasNode['tone']>, string> = {
 export default function CampaignStudio() {
   const location = useLocation()
   const navigate = useNavigate()
+  const {
+    setSelection,
+    askAboutSelection,
+    openPanel,
+    panelCollapsed,
+  } = useAiConversation()
   const [role, setRole] = useState<StudioRole>('marketer')
   const mode = modeFromPath(location.pathname)
+  const [contextMenuOpen, setContextMenuOpen] = useState(false)
 
   function setMode(next: StudioMode) {
     const href = pathForMode(next)
@@ -447,6 +455,49 @@ export default function CampaignStudio() {
 
   const activeAi = aiQueue[aiIndex % aiQueue.length]
   const perms = roleById(role)
+
+  useEffect(() => {
+    if (selectedIds.length === 0) {
+      setSelection(null)
+      setContextMenuOpen(false)
+      return
+    }
+
+    const selectedNodes = selectedIds
+      .map((id) => nodes.find((n) => n.id === id))
+      .filter(Boolean) as CanvasNode[]
+
+    if (selectedNodes.length === 0) {
+      setSelection(null)
+      return
+    }
+
+    const kinds = new Set(selectedNodes.map((n) => n.kind))
+    let kind: SelectionKind = 'multi'
+    if (selectedNodes.length === 1) {
+      const k = selectedNodes[0].kind
+      if (k === 'asset') kind = 'asset'
+      else if (k === 'review' || k === 'production') kind = 'approval'
+      else if (k === 'direction' || k === 'brief') kind = 'copy'
+      else if (k === 'reference' || k === 'template') kind = 'image'
+      else kind = 'workflow-node'
+    } else if (kinds.size === 1 && kinds.has('asset')) {
+      kind = 'asset'
+    }
+
+    const labels = selectedNodes.map((n) => n.title)
+    setSelection({
+      kind,
+      ids: selectedIds,
+      labels,
+      summary:
+        selectedNodes.length === 1
+          ? `${selectedNodes[0].kind}: ${selectedNodes[0].title}`
+          : `${selectedNodes.length} selected — ${labels.slice(0, 3).join(', ')}${
+              labels.length > 3 ? '…' : ''
+            }`,
+    })
+  }, [selectedIds, nodes, setSelection])
 
   useEffect(() => {
     if (mode === 'governance' && !perms.canManageWorkspace && !perms.canManageMemory) {
@@ -671,6 +722,9 @@ export default function CampaignStudio() {
       return
     }
     setImproving(true)
+    askAboutSelection(
+      `Improve “${node.title}” using brand memory — keep a single CTA and plainspoken proof.`,
+    )
     window.setTimeout(() => {
       setNodes((prev) =>
         prev.map((n) =>
@@ -691,6 +745,18 @@ export default function CampaignStudio() {
       )
       setImproving(false)
     }, 900)
+  }
+
+  const selectionPrompts = [
+    'Rewrite these for a more technical audience.',
+    'Apply this design treatment across all selected assets.',
+    'Add legal approval before publishing.',
+    'Create LinkedIn and email variations from this campaign.',
+  ] as const
+
+  function runSelectionPrompt(prompt: string) {
+    askAboutSelection(prompt)
+    setContextMenuOpen(false)
   }
 
   function applyAi() {
@@ -963,6 +1029,17 @@ export default function CampaignStudio() {
                   >
                     {improving ? 'Improving…' : 'Ask AI to improve'}
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      openPanel()
+                      setContextMenuOpen(true)
+                    }}
+                    disabled={selectedIds.length === 0}
+                    className="btn-primary !px-3 !py-1.5 text-[12px]"
+                  >
+                    Ask AI
+                  </button>
                 </>
               )}
               <button
@@ -1028,11 +1105,65 @@ export default function CampaignStudio() {
             tab={mode}
             onTabChange={(tab) => setMode(tab)}
             role={role}
+            onSelectContext={(ctx) => {
+              setSelection(ctx)
+              setContextMenuOpen(true)
+            }}
+            onAskAi={(prompt) => askAboutSelection(prompt)}
           />
         </div>
       ) : (
       <>
       <div className="relative min-h-0 flex-1">
+        {selectedIds.length > 0 && (
+          <div
+            className="absolute bottom-3 left-3 z-30 w-[min(100%-1.5rem,20rem)] rounded-xl border border-border bg-white p-3 shadow-[var(--shadow-lift-md)]"
+            role="region"
+            aria-label="Ask AI about selection"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="eyebrow text-brand-600">Ask AI</p>
+                <p className="mt-1 text-[12px] leading-snug text-muted">
+                  {selectedIds.length} selected — context passed automatically
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-expanded={contextMenuOpen}
+                aria-label={contextMenuOpen ? 'Hide prompts' : 'Show prompts'}
+                onClick={() => setContextMenuOpen((open) => !open)}
+                className="rounded-md px-1.5 text-[11px] font-medium text-brand-700 hover:bg-brand-50"
+              >
+                {contextMenuOpen ? 'Hide' : 'Prompts'}
+              </button>
+            </div>
+            {contextMenuOpen && (
+              <ul className="mt-2.5 space-y-1">
+                {selectionPrompts.map((prompt) => (
+                  <li key={prompt}>
+                    <button
+                      type="button"
+                      onClick={() => runSelectionPrompt(prompt)}
+                      className="w-full rounded-lg px-2 py-1.5 text-left text-[12px] leading-snug text-foreground hover:bg-brand-50"
+                    >
+                      {prompt}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {panelCollapsed && (
+              <button
+                type="button"
+                onClick={() => openPanel()}
+                className="mt-2 text-[11px] font-medium text-brand-700"
+              >
+                Open conversation →
+              </button>
+            )}
+          </div>
+        )}
         <div
           className="absolute top-3 left-3 z-20 flex flex-col gap-0.5 rounded-xl border border-border bg-white p-1.5 shadow-[var(--shadow-lift)]"
           role="toolbar"

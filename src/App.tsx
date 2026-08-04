@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import AppLayout from './components/layout/AppLayout'
+import { AiConversationProvider } from './lib/aiConversation'
 import CampaignIntelligence from './pages/CampaignIntelligence'
 import CampaignStudio from './pages/CampaignStudio'
 import CreateCampaign from './pages/CreateCampaign'
@@ -12,6 +13,7 @@ import Validate from './pages/Validate'
 export default function App() {
   return (
     <BrowserRouter>
+      <AiConversationProvider>
       <Routes>
         <Route path="/" element={<Navigate to="/p0" replace />} />
 
@@ -64,6 +66,7 @@ export default function App() {
 
         <Route path="*" element={<Navigate to="/p0" replace />} />
       </Routes>
+      </AiConversationProvider>
     </BrowserRouter>
   )
 }
