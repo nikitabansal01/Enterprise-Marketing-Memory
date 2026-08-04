@@ -7,7 +7,10 @@ import {
   type KeyboardEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAiConversation } from '../../lib/aiConversation'
+import { usePhaseHref } from '../../lib/usePhase'
+import AiExecutionProgress from './AiExecutionProgress'
 import CampaignUnderstandingCard from './CampaignUnderstandingCard'
 
 function MicIcon({ className }: { className?: string }) {
@@ -62,7 +65,14 @@ export default function AiConversationPanel() {
     setPanelWidthPct,
     setPanelCollapsed,
     sendMessage,
+    beginConnectBrand,
+    isExploratoryDraft,
+    showUnderstandingFlow,
+    understandingPhase,
+    execution,
   } = useAiConversation()
+  const learnBrandHref = usePhaseHref('learn-brand')
+  const navigate = useNavigate()
 
   const [value, setValue] = useState('')
   const [listening, setListening] = useState(false)
@@ -74,7 +84,12 @@ export default function AiConversationPanel() {
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages, isGenerating])
+  }, [messages, isGenerating, understandingPhase, execution?.status, execution?.activeIndex])
+
+  function goConnectBrand() {
+    beginConnectBrand()
+    navigate(learnBrandHref)
+  }
 
   function onSubmit(e?: FormEvent) {
     e?.preventDefault()
@@ -187,14 +202,26 @@ export default function AiConversationPanel() {
             </div>
           ))
         )}
-        {isGenerating && (
-          <p className="ai-panel__thinking" aria-live="polite">
-            Thinking…
-          </p>
+        {execution &&
+          (execution.status === 'running' ||
+            execution.status === 'needs-input' ||
+            (execution.status === 'complete' && execution.kind !== 'understanding')) && (
+            <AiExecutionProgress execution={execution} compact />
+          )}
+        {isExploratoryDraft && understandingPhase === 'confirmed' && (
+          <button
+            type="button"
+            className="mt-1 text-left text-[11px] font-medium text-brand-700 hover:text-brand-800"
+            onClick={goConnectBrand}
+          >
+            Recommended: Connect brand system →
+          </button>
         )}
       </div>
 
-      {understanding && <CampaignUnderstandingCard />}
+      {understanding && !showUnderstandingFlow && (
+        <CampaignUnderstandingCard compact />
+      )}
 
       <form onSubmit={onSubmit} className="ai-panel__composer">
         <label htmlFor={`${formId}-reply`} className="sr-only">

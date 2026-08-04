@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import AiWelcome from '../components/ai/AiWelcome'
+import CampaignUnderstandingFlow from '../components/ai/CampaignUnderstandingFlow'
 import ConfidenceBar from '../components/ui/ConfidenceBar'
 import MemoryToast, { type MemoryToastPayload } from '../components/ui/MemoryToast'
 import StatusBadge from '../components/ui/StatusBadge'
@@ -90,7 +91,7 @@ function ChevronIcon({ className }: { className?: string }) {
   )
 }
 
-function DashboardBody({ example = false }: { example?: boolean }) {
+function DashboardBody() {
   const learnBrandHref = usePhaseHref('learn-brand')
   const createCampaignHref = usePhaseHref('create-campaign')
   const [resolutions, setResolutions] = useState<Record<string, 'kept' | 'left'>>(
@@ -117,53 +118,40 @@ function DashboardBody({ example = false }: { example?: boolean }) {
   }
 
   return (
-    <div className={example ? 'ai-example-dashboard' : 'page-shell h-full'}>
+    <div className="page-shell h-full">
       <MemoryToast toast={toast} onDismiss={() => setToast(null)} />
-
-      {example && (
-        <div className="ai-example-dashboard__label">
-          <span className="eyebrow">Example content</span>
-          <p className="meta mt-0.5">Sample dashboard — secondary while you start a campaign</p>
-        </div>
-      )}
 
       <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="page-header">
-          <h1 className={example ? 'text-base font-semibold tracking-tight' : 'page-title'}>
-            Home
-          </h1>
-          {!example && (
-            <p className="page-subtitle">
-              I’m solid on voice and visuals. A few learnings still need your judgment
-              before I treat them as law.
-            </p>
-          )}
+          <h1 className="page-title">Home</h1>
+          <p className="page-subtitle">
+            I’m solid on voice and visuals. A few learnings still need your judgment
+            before I treat them as law.
+          </p>
         </div>
 
-        {!example && (
-          <label className="relative block w-full max-w-sm">
-            <span className="sr-only">Search marketing memory</span>
-            <svg
-              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400"
-              viewBox="0 0 16 16"
-              fill="none"
-              aria-hidden="true"
-            >
-              <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.5" />
-              <path
-                d="M10.5 10.5 13.5 13.5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-            <input
-              type="search"
-              placeholder="Search memory, campaigns, rules…"
-              className="field-input py-2.5 pr-4 pl-9"
+        <label className="relative block w-full max-w-sm">
+          <span className="sr-only">Search marketing memory</span>
+          <svg
+            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400"
+            viewBox="0 0 16 16"
+            fill="none"
+            aria-hidden="true"
+          >
+            <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.5" />
+            <path
+              d="M10.5 10.5 13.5 13.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
             />
-          </label>
-        )}
+          </svg>
+          <input
+            type="search"
+            placeholder="Search memory, campaigns, rules…"
+            className="field-input py-2.5 pr-4 pl-9"
+          />
+        </label>
       </header>
 
       <div className="grid flex-1 gap-5 lg:grid-cols-[minmax(0,1fr)_17.5rem]">
@@ -255,16 +243,14 @@ function DashboardBody({ example = false }: { example?: boolean }) {
             </div>
           </div>
 
-          {!example && (
-            <div className="mt-8 flex flex-wrap gap-2.5">
-              <Link to={learnBrandHref} className="btn-primary">
-                Teach AI Your Brand
-              </Link>
-              <Link to={createCampaignHref} className="btn-secondary">
-                Create First Draft
-              </Link>
-            </div>
-          )}
+          <div className="mt-8 flex flex-wrap gap-2.5">
+            <Link to={learnBrandHref} className="btn-primary">
+              Teach AI Your Brand
+            </Link>
+            <Link to={createCampaignHref} className="btn-secondary">
+              Create First Draft
+            </Link>
+          </div>
         </section>
 
         <aside className="surface-card fade-in p-6" style={{ animationDelay: '80ms' }}>
@@ -337,20 +323,23 @@ function DashboardBody({ example = false }: { example?: boolean }) {
 }
 
 export default function Dashboard() {
-  const { showWelcome } = useAiConversation()
+  const { experiencePreview, showUnderstandingFlow } = useAiConversation()
 
-  if (showWelcome) {
+  // Preview tab selects which state to show; never mix both on one screen.
+  if (experiencePreview === 'new') {
+    if (showUnderstandingFlow) {
+      return (
+        <div className="ai-welcome-page mx-auto flex w-full max-w-3xl flex-col px-1 pb-10">
+          <CampaignUnderstandingFlow />
+        </div>
+      )
+    }
     return (
-      <div className="ai-welcome-page mx-auto flex w-full max-w-5xl flex-col gap-10">
+      <div className="ai-welcome-page mx-auto flex w-full max-w-[58rem] flex-col px-2">
         <AiWelcome />
-        <DashboardBody example />
       </div>
     )
   }
 
-  return (
-    <div className="relative">
-      <DashboardBody />
-    </div>
-  )
+  return <DashboardBody />
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type DragEvent, type ChangeEvent } from 'r
 import BrandLearningExperience from '../components/ui/BrandLearningExperience'
 import ConfidenceBar from '../components/ui/ConfidenceBar'
 import MemoryCreatedCelebration from '../components/ui/MemoryCreatedCelebration'
+import { useAiConversation } from '../lib/aiConversation'
 
 type UploadItem = {
   id: string
@@ -128,6 +129,7 @@ const reviewItemsSeed = [
 ] as const
 
 export default function LearnBrand() {
+  const { approveVerifiedBrandSource } = useAiConversation()
   const [step, setStep] = useState<Step>('upload')
   const [files, setFiles] = useState<Record<UploadKey, UploadItem[]>>({
     guidelines: [],
@@ -157,6 +159,16 @@ export default function LearnBrand() {
       progressTimers.current.forEach((timer) => window.clearInterval(timer))
     }
   }, [])
+
+  function handleReviewAction(id: string, action: ReviewAction) {
+    setReviewState((prev) => {
+      const next = { ...prev, [id]: action }
+      if (Object.values(next).some((status) => status === 'approved')) {
+        queueMicrotask(() => approveVerifiedBrandSource())
+      }
+      return next
+    })
+  }
 
   function animateUpload(key: UploadKey, id: string) {
     const timer = window.setInterval(() => {
@@ -273,14 +285,15 @@ export default function LearnBrand() {
       <BrandReview
         reviewState={reviewState}
         editDrafts={editDrafts}
-        onAction={(id, action) =>
-          setReviewState((prev) => ({ ...prev, [id]: action }))
-        }
+        onAction={handleReviewAction}
         onEditDraft={(id, value) =>
           setEditDrafts((prev) => ({ ...prev, [id]: value }))
         }
         onLearnAnother={resetToUpload}
-        onLooksGood={() => setStep('created')}
+        onLooksGood={() => {
+          approveVerifiedBrandSource()
+          setStep('created')
+        }}
       />
     )
   }

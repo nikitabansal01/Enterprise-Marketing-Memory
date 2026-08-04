@@ -1,18 +1,50 @@
+import { Link } from 'react-router-dom'
 import { useAiConversation } from '../../lib/aiConversation'
+import { usePhaseHref } from '../../lib/usePhase'
+import AiExecutionProgress from './AiExecutionProgress'
 
 export default function CampaignOutputWorkspace() {
-  const { assets, understanding, isGenerating, openPanel } = useAiConversation()
+  const {
+    assets,
+    understanding,
+    isGenerating,
+    execution,
+    openPanel,
+    isExploratoryDraft,
+    beginConnectBrand,
+  } = useAiConversation()
+  const learnBrandHref = usePhaseHref('learn-brand')
+
+  const showGenerationProgress =
+    execution &&
+    execution.kind === 'generation' &&
+    (execution.status === 'running' ||
+      execution.status === 'needs-input' ||
+      (execution.status === 'complete' && assets.length === 0))
+
+  if (showGenerationProgress && execution) {
+    return (
+      <div className="ai-output ai-output--empty" aria-busy={execution.status === 'running'}>
+        <p className="eyebrow text-brand-600">Campaign output</p>
+        <h2 className="mt-2 text-lg font-semibold tracking-tight text-foreground">
+          {execution.status === 'complete'
+            ? 'Your campaign package is ready.'
+            : 'Building your campaign package'}
+        </h2>
+        <div className="mt-5 w-full max-w-md">
+          <AiExecutionProgress execution={execution} />
+        </div>
+      </div>
+    )
+  }
 
   if (isGenerating && assets.length === 0) {
     return (
       <div className="ai-output ai-output--empty" aria-busy="true">
-        <p className="eyebrow text-brand-600">Generating</p>
+        <p className="eyebrow text-brand-600">Campaign output</p>
         <h2 className="mt-2 text-lg font-semibold tracking-tight text-foreground">
-          Drafting campaign assets…
+          Building your campaign package
         </h2>
-        <p className="mt-2 max-w-md text-sm text-muted">
-          Inferring audience, channels, and formats from your brief.
-        </p>
       </div>
     )
   }
@@ -36,6 +68,30 @@ export default function CampaignOutputWorkspace() {
 
   return (
     <div className="ai-output">
+      {execution?.kind === 'generation' && execution.status === 'complete' && (
+        <div className="mb-4">
+          <AiExecutionProgress execution={execution} />
+        </div>
+      )}
+
+      {isExploratoryDraft && (
+        <div className="exploratory-banner" role="status">
+          <div>
+            <p className="exploratory-banner__label">
+              Exploratory draft — not validated against your enterprise brand system
+            </p>
+            <p className="meta mt-1">Temporary styling until a brand source is approved.</p>
+          </div>
+          <Link
+            to={learnBrandHref}
+            className="btn-primary shrink-0 !px-3 !py-1.5 text-[12px]"
+            onClick={() => beginConnectBrand()}
+          >
+            Connect brand system
+          </Link>
+        </div>
+      )}
+
       <header className="ai-output__header">
         <div>
           <p className="eyebrow text-brand-600">Campaign output</p>
@@ -48,7 +104,10 @@ export default function CampaignOutputWorkspace() {
 
       <div className="ai-output__grid">
         {assets.map((asset) => (
-          <article key={asset.id} className="ai-asset">
+          <article
+            key={asset.id}
+            className={['ai-asset', isExploratoryDraft ? 'ai-asset--exploratory' : ''].join(' ')}
+          >
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="eyebrow">{asset.format}</p>

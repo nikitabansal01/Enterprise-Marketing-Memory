@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useAiConversation } from '../../lib/aiConversation'
 import { usePhaseHref } from '../../lib/usePhase'
 
 const memoryCards = [
@@ -25,7 +26,9 @@ const memoryCards = [
 ] as const
 
 export default function MemoryCreatedCelebration() {
+  const homeHref = usePhaseHref()
   const createCampaignHref = usePhaseHref('create-campaign')
+  const { approveVerifiedBrandSource } = useAiConversation()
 
   return (
     <div className="fade-in page-shell page-shell--narrow items-center py-8 text-center">
@@ -62,10 +65,18 @@ export default function MemoryCreatedCelebration() {
         ))}
       </div>
 
-      <div className="pt-2">
+      <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+        <Link
+          to={homeHref}
+          className="btn-primary px-6 py-3.5 text-[15px]"
+          onClick={() => approveVerifiedBrandSource()}
+        >
+          Go to campaign dashboard
+        </Link>
         <Link
           to={createCampaignHref}
-          className="btn-primary px-6 py-3.5 text-[15px]"
+          className="btn-secondary px-6 py-3.5 text-[15px]"
+          onClick={() => approveVerifiedBrandSource()}
         >
           Create First Draft
         </Link>
