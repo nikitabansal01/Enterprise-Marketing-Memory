@@ -14,6 +14,8 @@ export default function CampaignOutputWorkspace() {
     beginConnectBrand,
   } = useAiConversation()
   const learnBrandHref = usePhaseHref('learn-brand')
+  const validateHref = usePhaseHref('validate')
+  const exportHref = usePhaseHref('export')
 
   const showGenerationProgress =
     execution &&
@@ -137,6 +139,30 @@ export default function CampaignOutputWorkspace() {
             )}
           </article>
         ))}
+      </div>
+
+      <div className="ai-output__actions">
+        <div>
+          <p className="text-[13px] font-medium text-foreground">Ready for the next step?</p>
+          <p className="mt-0.5 text-[12px] text-muted">
+            Confirm brand fit, then export — or keep revising in Campaign AI.
+          </p>
+        </div>
+        <div className="ai-output__action-buttons">
+          <button
+            type="button"
+            className="btn-secondary !px-3.5 !py-2 text-[13px]"
+            onClick={openPanel}
+          >
+            Ask for revisions
+          </button>
+          <Link to={exportHref} className="btn-secondary !px-3.5 !py-2 text-[13px]">
+            Export & publish
+          </Link>
+          <Link to={validateHref} className="btn-primary !px-4 !py-2 text-[13px]">
+            Confirm brand fit →
+          </Link>
+        </div>
       </div>
     </div>
   )
