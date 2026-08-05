@@ -84,17 +84,20 @@ export type UnderstandingPhase =
 
 export type UnderstandingQuestionId = 'create' | 'outcome' | 'audience' | 'else'
 
+const CREATE_PROMPT =
+  'What would you like to create — infographics, brochures, flyers, banners, social media graphics, or something else?'
+
 const UNDERSTANDING_QUESTIONS: {
   id: UnderstandingQuestionId
   prompt: string
 }[] = [
-  { id: 'create', prompt: 'What would you like to create?' },
+  { id: 'create', prompt: CREATE_PROMPT },
   { id: 'outcome', prompt: 'What business outcome should it drive?' },
   {
     id: 'audience',
     prompt: 'Who is the primary audience for this campaign?',
   },
-  { id: 'else', prompt: 'Anything else I should know?' },
+  { id: 'else', prompt: CREATE_PROMPT },
 ]
 
 export type SelectionKind =
@@ -305,11 +308,9 @@ function detectAnsweredQuestions(
     'flyer',
     'brochure',
     'infographic',
-    'campaign',
     'post',
     'ad',
-    'create',
-    'launch',
+    'graphic',
   ]
   if (starter || formatHints.some((hint) => lower.includes(hint))) {
     answered.add('create')
@@ -338,21 +339,6 @@ function detectAnsweredQuestions(
     answered.add('audience')
   }
 
-  const elseHints = [
-    'deadline',
-    'compliance',
-    'disclaimer',
-    'claim',
-    'offer',
-    'budget',
-    'legal',
-    'must include',
-    'should know',
-  ]
-  if (elseHints.some((hint) => lower.includes(hint))) {
-    answered.add('else')
-  }
-
   return answered
 }
 
@@ -361,8 +347,8 @@ function remainingQuestions(
   starter: CampaignStarter | null,
 ): UnderstandingQuestionId[] {
   const answered = detectAnsweredQuestions(intent, starter)
-  // Cap at 3 essential questions; prioritize create, outcome, audience over else.
-  const priority: UnderstandingQuestionId[] = ['create', 'outcome', 'audience', 'else']
+  // Cap at 3 essential questions.
+  const priority: UnderstandingQuestionId[] = ['create', 'outcome', 'audience']
   return priority.filter((id) => !answered.has(id)).slice(0, 3)
 }
 
@@ -492,8 +478,12 @@ function applyQuestionAnswer(
     provenance: { ...current.provenance },
   }
 
-  if (questionId === 'create') {
-    next.formats = [trimmed]
+  if (questionId === 'create' || questionId === 'else') {
+    const parts = trimmed
+      .split(/,| and | or |\/|&|\+/i)
+      .map((part) => part.trim())
+      .filter(Boolean)
+    next.formats = parts.length > 0 ? parts : [trimmed]
     next.provenance.formats = 'user'
     if (!current.objective || current.provenance.objective !== 'user') {
       next.objective = `Create ${trimmed}`
@@ -527,9 +517,6 @@ function applyQuestionAnswer(
       next.audiencePainPoint = 'Needs confirmation from brief'
       next.provenance.audiencePainPoint = 'needs-confirmation'
     }
-  } else {
-    next.claims = trimmed
-    next.provenance.claims = 'user'
   }
 
   return next
