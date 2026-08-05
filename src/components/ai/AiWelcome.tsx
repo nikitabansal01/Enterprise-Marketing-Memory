@@ -46,7 +46,7 @@ const STARTER_PROMPTS = [
     id: 'multi',
     label: 'Multi-channel campaign',
     draft:
-      'Create a multi-channel campaign with infographics, brochures, flyers, banners, and social media graphics to introduce our platform and drive qualified demo requests.',
+      'Create a multi-channel campaign with flyers, banners, and social media graphics to introduce our platform and drive qualified demo requests.',
   },
 ] as const
 

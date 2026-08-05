@@ -26,8 +26,6 @@ export type PanelContextKey = 'home' | 'studio' | 'intelligence' | 'campaign'
 export type ChatRole = 'user' | 'assistant' | 'system'
 
 export type CampaignStarter =
-  | 'Infographic'
-  | 'Brochure'
   | 'Flyer'
   | 'Banner'
   | 'Social media graphic'
@@ -84,7 +82,7 @@ export type UnderstandingPhase =
 export type UnderstandingQuestionId = 'create' | 'outcome' | 'audience' | 'else'
 
 const CREATE_PROMPT =
-  'What would you like to create — infographics, brochures, flyers, banners, social media graphics, or something else?'
+  'What would you like to create — flyers, banners, social media graphics, or something else?'
 
 const UNDERSTANDING_QUESTIONS: {
   id: UnderstandingQuestionId
@@ -219,22 +217,15 @@ type AiConversationValue = {
   markReturning: () => void
 }
 
-const STORAGE_KEY = 'emm-ai-conversation-v1'
+const STORAGE_KEY = 'emm-ai-conversation-v2'
 const PREVIEW_STORAGE_KEY = 'emm-experience-preview-v1'
 
 const DEFAULT_PANEL: PanelPrefs = { collapsed: true, widthPct: 32 }
 
-const DEMO_FORMATS = [
-  'Infographic',
-  'Brochure',
-  'Flyer',
-  'Banner',
-  'Social media graphic',
-] as const
+/** P0: Flyer / Banner / Social. Brochure → P1. Infographic → P2. */
+const DEMO_FORMATS = ['Flyer', 'Banner', 'Social media graphic'] as const
 
 const STARTER_FORMATS: Record<CampaignStarter, string[]> = {
-  Infographic: ['Infographic'],
-  Brochure: ['Brochure'],
   Flyer: ['Flyer'],
   Banner: ['Banner'],
   'Social media graphic': ['Social media graphic'],
@@ -1505,7 +1496,7 @@ export function AiConversationProvider({ children }: { children: ReactNode }) {
           lower.includes('email')
         ) {
           reply =
-            'Created infographic, brochure, flyer, banner, and social graphic variations from the current campaign direction. They’re in the output panel.'
+            'Created flyer, banner, and social graphic variations from the current campaign direction. They’re in the output panel.'
           if (understanding) {
             setAssets(buildAssets(understanding, starter, isExploratoryDraft))
           }
@@ -1765,8 +1756,6 @@ export function useAiConversation() {
 }
 
 export const CAMPAIGN_STARTERS: CampaignStarter[] = [
-  'Infographic',
-  'Brochure',
   'Flyer',
   'Banner',
   'Social media graphic',

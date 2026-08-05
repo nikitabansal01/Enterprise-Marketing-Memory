@@ -25,20 +25,6 @@ type FitAsset = {
 
 const DEFAULT_ASSETS: FitAsset[] = [
   {
-    id: 'infographic',
-    format: 'Infographic',
-    title: 'Infographic — draft 1',
-    headline: 'See what enterprise teams already proved works.',
-    status: 'pass',
-  },
-  {
-    id: 'brochure',
-    format: 'Brochure',
-    title: 'Brochure — draft 1',
-    headline: 'Stop rebuilding campaigns from scratch.',
-    status: 'pass',
-  },
-  {
     id: 'flyer',
     format: 'Flyer',
     title: 'Flyer — draft 1',
