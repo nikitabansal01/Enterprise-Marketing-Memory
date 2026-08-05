@@ -361,10 +361,7 @@ export default function StudioExecution({
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[#f3f5f8]">
       <MemoryToast toast={toast} onDismiss={() => setToast(null)} />
 
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border bg-white px-5 py-2.5">
-        <p className="text-[12px] text-muted">
-          {perms.short}: {perms.focus}
-        </p>
+      <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 border-b border-border bg-white px-5 py-2.5">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-muted">
           <span className="inline-flex items-center gap-1.5">
             <span className="size-1.5 rounded-full bg-emerald-500" />
