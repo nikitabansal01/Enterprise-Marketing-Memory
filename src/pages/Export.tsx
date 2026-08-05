@@ -190,7 +190,7 @@ export default function Export() {
       <header className="page-header">
         <h1 className="page-title">Ready for Production</h1>
         <p className="page-subtitle">
-          I checked this campaign against brand memory. Ship when the score is clear.
+          Brand and quality checks against memory — clear to export when the score is solid.
         </p>
       </header>
 
@@ -199,7 +199,7 @@ export default function Export() {
           <div className="space-y-1">
             <p className="section-label">Production score</p>
             <p className="text-[12px] text-muted">
-              {passedCount} of {scoredChecks.length} brand checks passed
+              {passedCount} of {scoredChecks.length} brand and quality checks passed
             </p>
           </div>
           <div className="flex items-baseline gap-1">
