@@ -11,11 +11,13 @@ export default function CampaignOutputWorkspace() {
     execution,
     openPanel,
     isExploratoryDraft,
+    hasVerifiedBrandSource,
     beginConnectBrand,
   } = useAiConversation()
   const learnBrandHref = usePhaseHref('learn-brand')
   const validateHref = usePhaseHref('validate')
   const exportHref = usePhaseHref('export')
+  const canScoreCompliance = hasVerifiedBrandSource && !isExploratoryDraft
 
   const showGenerationProgress =
     execution &&
@@ -147,7 +149,9 @@ export default function CampaignOutputWorkspace() {
         <div>
           <p className="text-[13px] font-medium text-foreground">Ready for the next step?</p>
           <p className="mt-0.5 text-[12px] text-muted">
-            Confirm brand fit, then export — or keep revising in Campaign AI.
+            {canScoreCompliance
+              ? 'Confirm brand fit, then export — or keep revising in Campaign AI.'
+              : 'Connect a brand system before brand-fit or production scoring.'}
           </p>
         </div>
         <div className="ai-output__action-buttons">
@@ -158,12 +162,24 @@ export default function CampaignOutputWorkspace() {
           >
             Ask for revisions
           </button>
-          <Link to={exportHref} className="btn-secondary !px-3.5 !py-2 text-[13px]">
-            Export & publish
-          </Link>
-          <Link to={validateHref} className="btn-primary !px-4 !py-2 text-[13px]">
-            Confirm brand fit →
-          </Link>
+          {canScoreCompliance ? (
+            <>
+              <Link to={exportHref} className="btn-secondary !px-3.5 !py-2 text-[13px]">
+                Export & publish
+              </Link>
+              <Link to={validateHref} className="btn-primary !px-4 !py-2 text-[13px]">
+                Confirm brand fit →
+              </Link>
+            </>
+          ) : (
+            <Link
+              to={learnBrandHref}
+              className="btn-primary !px-4 !py-2 text-[13px]"
+              onClick={() => beginConnectBrand()}
+            >
+              Connect brand system →
+            </Link>
+          )}
         </div>
       </div>
     </div>

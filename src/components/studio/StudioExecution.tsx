@@ -183,7 +183,6 @@ const stepTone: Record<WorkflowStep['tone'], string> = {
 
 type StudioExecutionProps = {
   tab: ExecutionTab
-  onTabChange: (tab: ExecutionTab) => void
   role: StudioRole
   onSelectContext?: (ctx: SelectionContext) => void
   onAskAi?: (prompt: string) => void
@@ -191,7 +190,6 @@ type StudioExecutionProps = {
 
 export default function StudioExecution({
   tab,
-  onTabChange,
   role,
   onSelectContext,
   onAskAi,
@@ -215,23 +213,6 @@ export default function StudioExecution({
       ? (publishMap[c.id] ?? 'Ready')
       : ('Not connected' as const),
   }))
-
-  const tabs = (
-    [
-      { id: 'workflow', label: 'Workflow Builder', show: true },
-      { id: 'approvals', label: 'Approvals', show: true },
-      {
-        id: 'connectors',
-        label: 'Enterprise Connectors',
-        show: perms.canManageConnectors || role === 'marketer' || role === 'brand',
-      },
-      {
-        id: 'governance',
-        label: 'Governance',
-        show: perms.canManageWorkspace || perms.canManageMemory,
-      },
-    ] as const
-  ).filter((item) => item.show)
 
   function connect(id: string) {
     if (!perms.canManageConnectors || connected.includes(id) || connectingId) return
@@ -380,33 +361,11 @@ export default function StudioExecution({
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[#f3f5f8]">
       <MemoryToast toast={toast} onDismiss={() => setToast(null)} />
 
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border bg-white px-5 py-3">
-        <div
-          className="flex flex-wrap rounded-xl border border-border bg-slate-50 p-1"
-          role="tablist"
-          aria-label="Execution"
-        >
-          {tabs.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              role="tab"
-              aria-selected={tab === item.id}
-              onClick={() => onTabChange(item.id)}
-              className={[
-                'rounded-lg px-3 py-1.5 text-[12px] font-medium transition-all duration-150',
-                tab === item.id
-                  ? 'bg-white text-foreground shadow-[var(--shadow-soft)]'
-                  : 'text-muted hover:text-foreground',
-              ].join(' ')}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border bg-white px-5 py-2.5">
+        <p className="text-[12px] text-muted">
+          {perms.short}: {perms.focus}
+        </p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-muted">
-          <span>{perms.short}: {perms.focus}</span>
           <span className="inline-flex items-center gap-1.5">
             <span className="size-1.5 rounded-full bg-emerald-500" />
             {approvedCount}/{approvals.length} stages

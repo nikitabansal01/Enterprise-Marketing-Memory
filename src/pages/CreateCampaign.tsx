@@ -106,7 +106,7 @@ function buildDirections(brief: Brief, variant: number): Direction[] {
       label: 'Conservative',
       why: 'Closest to your highest-performing approved campaigns — familiar structure, minimal risk.',
       strengths: [
-        'Highest brand-compliance confidence',
+        'Closest to approved campaign patterns',
         'Proven problem → proof → CTA flow',
         'Safe for regulated enterprise audiences',
       ],

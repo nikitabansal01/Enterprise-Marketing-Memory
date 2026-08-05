@@ -78,11 +78,19 @@ export const INTELLIGENCE_STEPS: AiExecutionStep[] = [
   { id: 'prepare', label: 'Preparing a clear answer' },
 ]
 
-export function stepsForKind(kind: AiExecutionKind): AiExecutionStep[] {
+export function stepsForKind(
+  kind: AiExecutionKind,
+  options?: { hasVerifiedBrandSource?: boolean },
+): AiExecutionStep[] {
   switch (kind) {
     case 'understanding':
       return UNDERSTANDING_STEPS
     case 'generation':
+      if (options?.hasVerifiedBrandSource === false) {
+        return GENERATION_STEPS.filter(
+          (step) => step.id !== 'design-system' && step.id !== 'compliance',
+        )
+      }
       return GENERATION_STEPS
     case 'studio':
       return STUDIO_STEPS

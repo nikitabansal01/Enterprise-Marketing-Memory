@@ -16,6 +16,7 @@ export default function AiExecutionProgress({
     execution
 
   if (status === 'complete' && summary) {
+    const showBrandChecks = summary.brandChecksPassed > 0
     return (
       <section
         className={['ai-exec', 'ai-exec--complete', compact ? 'ai-exec--compact' : '']
@@ -33,10 +34,12 @@ export default function AiExecutionProgress({
             <span className="ai-exec__summary-label">Channels covered</span>
             <span>{summary.channelsCovered.join(', ') || '—'}</span>
           </li>
-          <li>
-            <span className="ai-exec__summary-label">Brand checks passed</span>
-            <span>{summary.brandChecksPassed}</span>
-          </li>
+          {showBrandChecks && (
+            <li>
+              <span className="ai-exec__summary-label">Brand checks passed</span>
+              <span>{summary.brandChecksPassed}</span>
+            </li>
+          )}
           <li>
             <span className="ai-exec__summary-label">Items needing review</span>
             <span>

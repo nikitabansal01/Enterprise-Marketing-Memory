@@ -100,11 +100,15 @@ function statusLabel(status: CheckStatus): string {
 export default function Validate() {
   const navigate = useNavigate()
   const exportHref = usePhaseHref('export')
+  const learnBrandHref = usePhaseHref('learn-brand')
   const {
     assets,
     understanding,
     isExploratoryDraft,
+    hasVerifiedBrandSource,
+    canScoreCompliance,
     openCampaignWorkflowStep,
+    beginConnectBrand,
   } = useAiConversation()
 
   const fitAssets = useMemo<FitAsset[]>(() => {
@@ -130,8 +134,12 @@ export default function Validate() {
     ...checks.filter((check) => check.status === 'review'),
     ...assetStates.filter((asset) => asset.status === 'review'),
   ]
-  const score = Math.round((passed / checks.length) * 100)
-  const canContinue = needsReview.length === 0 || checks.every((c) => c.status !== 'fail')
+  const score = canScoreCompliance
+    ? Math.round((passed / checks.length) * 100)
+    : 0
+  const canContinue =
+    canScoreCompliance &&
+    (needsReview.length === 0 || checks.every((c) => c.status !== 'fail'))
 
   function approveCheck(id: string) {
     setChecks((prev) =>
@@ -159,6 +167,47 @@ export default function Validate() {
       prev.map((asset) =>
         asset.status === 'review' ? { ...asset, status: 'pass' as const } : asset,
       ),
+    )
+  }
+
+  if (!canScoreCompliance) {
+    return (
+      <div className="page-shell page-shell--narrow pb-10">
+        <header className="page-header">
+          <h1 className="page-title">Confirm Brand Fit</h1>
+          <p className="page-subtitle">
+            Brand-fit scoring needs a verified brand system first.
+          </p>
+        </header>
+
+        <section className="surface-card p-5 sm:p-6" role="status">
+          <p className="section-label">No brand-fit score yet</p>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            {isExploratoryDraft || !hasVerifiedBrandSource
+              ? 'Connect guidelines, design system, or approved assets before I can score brand fit or clear a package for production. I won’t show a 100/100 without that.'
+              : 'Connect a verified brand system before brand-fit scoring.'}
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2.5">
+            <Link
+              to={learnBrandHref}
+              className="btn-primary px-5 py-3"
+              onClick={() => beginConnectBrand()}
+            >
+              Connect brand system
+            </Link>
+            <button
+              type="button"
+              className="btn-secondary px-5 py-3"
+              onClick={() => {
+                openCampaignWorkflowStep('drafts')
+                navigate('/p0')
+              }}
+            >
+              Back to drafts
+            </button>
+          </div>
+        </section>
+      </div>
     )
   }
 

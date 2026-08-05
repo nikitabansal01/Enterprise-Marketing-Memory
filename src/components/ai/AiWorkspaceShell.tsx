@@ -6,7 +6,6 @@ import {
 } from '../../lib/aiConversation'
 import { phaseFromPath } from '../../lib/phases'
 import AiConversationPanel from './AiConversationPanel'
-import AskAiButton from './AskAiButton'
 import CampaignOutputWorkspace from './CampaignOutputWorkspace'
 
 type AiWorkspaceShellProps = {
@@ -48,9 +47,40 @@ function ExperiencePreviewSwitcher({
   )
 }
 
+function ExpandIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M6.5 3.5 10 8l-3.5 4.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function AiPanelRail({ onExpand }: { onExpand: () => void }) {
+  return (
+    <aside className="ai-panel-rail" aria-label="Campaign AI">
+      <button
+        type="button"
+        className="ai-panel-rail__toggle"
+        aria-expanded={false}
+        aria-label="Expand Campaign AI"
+        title="Expand Campaign AI"
+        onClick={onExpand}
+      >
+        <ExpandIcon className="ai-panel-rail__icon" />
+        <span className="ai-panel-rail__label">Campaign AI</span>
+      </button>
+    </aside>
+  )
+}
+
 export default function AiWorkspaceShell({ children }: AiWorkspaceShellProps) {
   const location = useLocation()
-  const phase = phaseFromPath(location.pathname)
   const isHome = location.pathname === '/p0' || location.pathname === '/p0/'
   const {
     experienceMode,
@@ -69,22 +99,30 @@ export default function AiWorkspaceShell({ children }: AiWorkspaceShellProps) {
 
   const replaceMainWithOutput = showCampaignOutput && isHome
 
-  const showCollapsedControl =
-    panelCollapsed &&
-    !(isHome && (showWelcome || showUnderstandingFlow || experiencePreview === 'new')) &&
-    (phase === 'p1' || phase === 'p2' || isHome || hasActiveCampaign)
+  // Narrow rail when side chat can exist but is collapsed (not on centered welcome flows).
+  const showCollapsedRail =
+    panelCollapsed && !showWelcome && !showUnderstandingFlow
+
+  function expandChat() {
+    if (isHome && hasActiveCampaign && !replaceMainWithOutput) {
+      openCampaignWorkspace()
+    }
+    openPanel()
+  }
 
   return (
     <div
       className={[
         'ai-workspace',
         showSplitPanel ? 'ai-workspace--split' : '',
+        showCollapsedRail ? 'ai-workspace--rail' : '',
         showWelcome || showUnderstandingFlow ? 'ai-workspace--welcome' : '',
       ]
         .filter(Boolean)
         .join(' ')}
     >
       {showSplitPanel && <AiConversationPanel />}
+      {showCollapsedRail && <AiPanelRail onExpand={expandChat} />}
 
       <div className="ai-workspace__main">
         {isHome && (
@@ -92,24 +130,6 @@ export default function AiWorkspaceShell({ children }: AiWorkspaceShellProps) {
             <ExperiencePreviewSwitcher
               value={experiencePreview}
               onChange={setExperiencePreview}
-            />
-          </div>
-        )}
-
-        {showCollapsedControl && (
-          <div className="ai-workspace__ask">
-            <AskAiButton
-              label={
-                isHome && hasActiveCampaign
-                  ? 'Open campaign'
-                  : isHome
-                    ? 'Start campaign'
-                    : 'Ask AI'
-              }
-              onBeforeOpen={() => {
-                if (isHome && hasActiveCampaign) openCampaignWorkspace()
-                else openPanel()
-              }}
             />
           </div>
         )}

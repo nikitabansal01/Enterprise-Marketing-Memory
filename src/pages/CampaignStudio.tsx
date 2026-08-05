@@ -167,7 +167,7 @@ const initialNodes: CanvasNode[] = [
     w: 290,
     title: 'Conservative',
     body: 'Keep every campaign on-brand.\nMemory drafts from approved patterns — familiar structure, minimal risk.',
-    meta: 'Highest compliance',
+    meta: 'Closest to approved patterns',
     tone: 'slate',
     editable: true,
   },
@@ -1103,7 +1103,6 @@ export default function CampaignStudio() {
         <div className="min-h-0 flex-1">
           <StudioExecution
             tab={mode}
-            onTabChange={(tab) => setMode(tab)}
             role={role}
             onSelectContext={(ctx) => {
               setSelection(ctx)

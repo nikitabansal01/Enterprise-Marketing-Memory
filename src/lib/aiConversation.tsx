@@ -169,6 +169,8 @@ type AiConversationValue = {
   isReturningUser: boolean
   hasActiveCampaign: boolean
   hasVerifiedBrandSource: boolean
+  /** Brand-fit / production scores only when a verified brand backs a non-exploratory draft. */
+  canScoreCompliance: boolean
   workspaceStatus: WorkspaceStatus
   experiencePreview: WorkspaceStatus
   workspacePreview: WorkspaceStatus
@@ -713,6 +715,7 @@ function buildGenerationSummary(
     headline: 'Your campaign package is ready.',
     assetsCreated: assetCount,
     channelsCovered: understanding.channels,
+    // Never invent a passing brand-check count without a verified brand.
     brandChecksPassed: exploratory || !hasVerifiedBrandSource ? 0 : 4,
     itemsNeedingReview: needingReview,
   }
@@ -1007,7 +1010,7 @@ export function AiConversationProvider({ children }: { children: ReactNode }) {
       options?: { needsInput?: AiNeedsInput; summary?: AiExecutionSummary },
     ) => {
       stopExecution()
-      const steps = stepsForKind(kind)
+      const steps = stepsForKind(kind, { hasVerifiedBrandSource })
       const id = uid('exec')
       setIsGenerating(true)
       setExecution({
@@ -1077,7 +1080,7 @@ export function AiConversationProvider({ children }: { children: ReactNode }) {
         },
       )
     },
-    [stopExecution],
+    [hasVerifiedBrandSource, stopExecution],
   )
 
   const generateCampaignDraft = useCallback(
@@ -1669,10 +1672,13 @@ export function AiConversationProvider({ children }: { children: ReactNode }) {
     }
   }, [isHome]) // eslint-disable-line react-hooks/exhaustive-deps -- land-once behavior
 
+  const canScoreCompliance = hasVerifiedBrandSource && !isExploratoryDraft
+
   const value: AiConversationValue = {
     isReturningUser,
     hasActiveCampaign,
     hasVerifiedBrandSource,
+    canScoreCompliance,
     workspaceStatus,
     experiencePreview,
     workspacePreview: experiencePreview,

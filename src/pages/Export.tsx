@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import ConfidenceBar from '../components/ui/ConfidenceBar'
 import MemoryToast, { type MemoryToastPayload } from '../components/ui/MemoryToast'
+import { useAiConversation } from '../lib/aiConversation'
+import { usePhaseHref } from '../lib/usePhase'
 
 const checks = [
   {
@@ -89,27 +92,52 @@ function AlertIcon({ className }: { className?: string }) {
 }
 
 export default function Export() {
+  const { hasVerifiedBrandSource, isExploratoryDraft, canScoreCompliance, beginConnectBrand } =
+    useAiConversation()
+  const learnBrandHref = usePhaseHref('learn-brand')
+  const validateHref = usePhaseHref('validate')
   const [status, setStatus] = useState<Record<string, DownloadStatus>>({})
   const [scoreVisible, setScoreVisible] = useState(0)
   const [revealed, setRevealed] = useState(0)
   const [toast, setToast] = useState<MemoryToastPayload | null>(null)
 
-  const passedCount = checks.filter((c) => c.passed).length
-  const score = Math.round((passedCount / checks.length) * 100)
-  const unresolved = checks.filter((c) => !c.passed)
+  // Brand compliance cannot pass without a connected brand system.
+  const scoredChecks = checks.map((check) =>
+    check.id === 'brand'
+      ? {
+          ...check,
+          passed: canScoreCompliance,
+          evidence: canScoreCompliance
+            ? check.evidence
+            : 'No verified brand system connected — compliance not scored.',
+        }
+      : check,
+  )
+
+  const passedCount = scoredChecks.filter((c) => c.passed).length
+  const score = canScoreCompliance
+    ? Math.round((passedCount / scoredChecks.length) * 100)
+    : 0
+  const unresolved = scoredChecks.filter((c) => !c.passed)
 
   useEffect(() => {
+    if (!canScoreCompliance) {
+      setScoreVisible(0)
+      setRevealed(0)
+      return
+    }
     const frame = window.requestAnimationFrame(() => setScoreVisible(score))
-    const timers = checks.map((_, index) =>
+    const timers = scoredChecks.map((_, index) =>
       window.setTimeout(() => setRevealed(index + 1), 180 + index * 120),
     )
     return () => {
       window.cancelAnimationFrame(frame)
       timers.forEach((timer) => window.clearTimeout(timer))
     }
-  }, [score])
+  }, [canScoreCompliance, score, scoredChecks.length])
 
   function download(id: string) {
+    if (!canScoreCompliance) return
     setStatus((prev) => ({ ...prev, [id]: 'loading' }))
     window.setTimeout(() => {
       setStatus((prev) => ({ ...prev, [id]: 'done' }))
@@ -119,6 +147,40 @@ export default function Export() {
         detail: `I already verified ${passedCount} checks — this ${id.toUpperCase()} package is clear to go.`,
       })
     }, 1100)
+  }
+
+  if (!canScoreCompliance) {
+    return (
+      <div className="page-shell page-shell--narrow">
+        <header className="page-header">
+          <h1 className="page-title">Ready for Production</h1>
+          <p className="page-subtitle">
+            Production scoring unlocks after a verified brand system is connected.
+          </p>
+        </header>
+
+        <section className="surface-card p-6" role="status">
+          <p className="section-label">No compliance score yet</p>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            {isExploratoryDraft || !hasVerifiedBrandSource
+              ? 'I can’t issue a production-ready score (or 100/100) without brand memory to check against.'
+              : 'Connect a verified brand system before production scoring.'}
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2.5">
+            <Link
+              to={learnBrandHref}
+              className="btn-primary px-5 py-3"
+              onClick={() => beginConnectBrand()}
+            >
+              Connect brand system
+            </Link>
+            <Link to={validateHref} className="btn-secondary px-5 py-3">
+              Confirm brand fit
+            </Link>
+          </div>
+        </section>
+      </div>
+    )
   }
 
   return (
@@ -137,7 +199,7 @@ export default function Export() {
           <div className="space-y-1">
             <p className="section-label">Production score</p>
             <p className="text-[12px] text-muted">
-              {passedCount} of {checks.length} brand checks passed
+              {passedCount} of {scoredChecks.length} brand checks passed
             </p>
           </div>
           <div className="flex items-baseline gap-1">
@@ -165,7 +227,7 @@ export default function Export() {
       <section className="space-y-3">
         <h2 className="section-label">What I verified</h2>
         <ul className="divide-y divide-border overflow-hidden rounded-[0.875rem] border border-border bg-surface shadow-soft">
-          {checks.map((check, index) => {
+          {scoredChecks.map((check, index) => {
             const visible = index < revealed
 
             return (

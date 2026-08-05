@@ -1065,11 +1065,56 @@ body {
     flex: 1;
   }
 
-  .ai-workspace__ask {
-    position: absolute;
-    right: 0.75rem;
-    bottom: 0.75rem;
-    z-index: 30;
+  .ai-panel-rail {
+    display: flex;
+    width: 2.75rem;
+    flex-shrink: 0;
+    flex-direction: column;
+    align-items: stretch;
+    border-right: 1px solid var(--color-border);
+    background: #fbfcfd;
+    animation: ai-panel-in var(--duration-base) var(--ease-out-soft) both;
+  }
+
+  .ai-panel-rail__toggle {
+    display: flex;
+    height: 100%;
+    min-height: 8rem;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 0.35rem;
+    color: var(--color-brand-700);
+    transition: background-color var(--duration-fast) var(--ease-in-out-soft);
+  }
+
+  .ai-panel-rail__toggle:hover {
+    background: var(--color-brand-50);
+  }
+
+  .ai-panel-rail__toggle:focus-visible {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: -2px;
+  }
+
+  .ai-panel-rail__icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+
+  .ai-panel-rail__label {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .ai-panel-rail__toggle:hover .ai-panel-rail__label {
+    color: var(--color-brand-700);
   }
 
   .ai-workspace--split .ai-panel {
@@ -2607,6 +2652,7 @@ body {
   .campaign-canvas__ai-pulse,
   .ai-workspace--split .ai-panel,
   .ai-workspace--split .ai-workspace__main,
+  .ai-panel-rail,
   .stagger > * {
     animation: none !important;
   }

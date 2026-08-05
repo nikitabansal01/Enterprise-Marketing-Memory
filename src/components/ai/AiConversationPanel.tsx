@@ -44,13 +44,8 @@ function PaperclipIcon({ className }: { className?: string }) {
 function CollapseIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path
-        d="M9.5 3.5 6 8l3.5 4.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <rect x="2.5" y="2.5" width="11" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M6.5 2.5v11" stroke="currentColor" strokeWidth="1.4" />
     </svg>
   )
 }
@@ -168,8 +163,8 @@ export default function AiConversationPanel() {
           type="button"
           onClick={() => setPanelCollapsed(true)}
           className="ai-panel__icon-btn"
-          aria-label="Collapse AI panel"
-          title="Collapse"
+          aria-label="Collapse Campaign AI"
+          title="Collapse Campaign AI"
         >
           <CollapseIcon className="size-4" />
         </button>
