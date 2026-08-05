@@ -973,7 +973,7 @@ export function AiConversationProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const enterReview = useCallback(
-    (inferred: CampaignUnderstanding, hasBrand: boolean) => {
+    (_inferred: CampaignUnderstanding, hasBrand: boolean) => {
       setUnderstandingPhase('review')
       setOpenQuestionIds([])
       setMessages((prev) => [
