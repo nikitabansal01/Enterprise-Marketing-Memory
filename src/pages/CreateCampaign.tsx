@@ -52,7 +52,7 @@ const initialBrief: Brief = {
   audience: 'Enterprise marketing leaders at mid-market and Fortune 500 companies.',
   product: 'Enterprise Marketing Memory',
   tone: 'Confident, plainspoken, and practical — no hype.',
-  requiredAssets: 'LinkedIn post, 728×90 banner, one-page PDF flyer',
+  requiredAssets: 'Infographic, brochure, flyer, banner, social media graphic',
 }
 
 const fieldMeta: {

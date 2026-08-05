@@ -4,7 +4,6 @@ import {
   useAiConversation,
   type WorkspaceStatus,
 } from '../../lib/aiConversation'
-import { phaseFromPath } from '../../lib/phases'
 import AiConversationPanel from './AiConversationPanel'
 import CampaignOutputWorkspace from './CampaignOutputWorkspace'
 

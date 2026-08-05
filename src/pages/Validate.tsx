@@ -25,25 +25,39 @@ type FitAsset = {
 
 const DEFAULT_ASSETS: FitAsset[] = [
   {
-    id: 'social',
-    format: 'LinkedIn post',
-    title: 'Social — draft 1',
-    headline: 'Keep every campaign on-brand.',
+    id: 'infographic',
+    format: 'Infographic',
+    title: 'Infographic — draft 1',
+    headline: 'See what enterprise teams already proved works.',
     status: 'pass',
   },
   {
-    id: 'banner',
-    format: '728×90 banner',
-    title: 'Banner — draft 1',
-    headline: 'One brief. On-brand assets across channels.',
+    id: 'brochure',
+    format: 'Brochure',
+    title: 'Brochure — draft 1',
+    headline: 'Stop rebuilding campaigns from scratch.',
     status: 'pass',
   },
   {
     id: 'flyer',
-    format: 'One-page flyer',
+    format: 'Flyer',
     title: 'Flyer — draft 1',
-    headline: 'See what enterprise teams already proved works.',
+    headline: 'One brief. On-brand assets across channels.',
     status: 'review',
+  },
+  {
+    id: 'banner',
+    format: 'Banner',
+    title: 'Banner — draft 1',
+    headline: 'Capture attention with a single claim.',
+    status: 'pass',
+  },
+  {
+    id: 'social',
+    format: 'Social media graphic',
+    title: 'Social media graphic — draft 1',
+    headline: 'Proof that travels across social feeds.',
+    status: 'pass',
   },
 ]
 

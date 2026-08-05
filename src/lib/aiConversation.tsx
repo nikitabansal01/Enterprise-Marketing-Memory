@@ -26,12 +26,11 @@ export type PanelContextKey = 'home' | 'studio' | 'intelligence' | 'campaign'
 export type ChatRole = 'user' | 'assistant' | 'system'
 
 export type CampaignStarter =
-  | 'Email'
-  | 'Social post'
-  | 'Banner'
-  | 'Flyer'
-  | 'Brochure'
   | 'Infographic'
+  | 'Brochure'
+  | 'Flyer'
+  | 'Banner'
+  | 'Social media graphic'
   | 'Multi-channel campaign'
 
 export type AssetType = 'text' | 'image' | 'combined'
@@ -225,14 +224,21 @@ const PREVIEW_STORAGE_KEY = 'emm-experience-preview-v1'
 
 const DEFAULT_PANEL: PanelPrefs = { collapsed: true, widthPct: 32 }
 
+const DEMO_FORMATS = [
+  'Infographic',
+  'Brochure',
+  'Flyer',
+  'Banner',
+  'Social media graphic',
+] as const
+
 const STARTER_FORMATS: Record<CampaignStarter, string[]> = {
-  Email: ['Email'],
-  'Social post': ['LinkedIn post', 'Social graphic'],
-  Banner: ['728×90 banner', '300×250 banner'],
-  Flyer: ['One-page flyer'],
-  Brochure: ['Multi-page brochure'],
   Infographic: ['Infographic'],
-  'Multi-channel campaign': ['Email', 'LinkedIn post', 'Banner', 'Flyer'],
+  Brochure: ['Brochure'],
+  Flyer: ['Flyer'],
+  Banner: ['Banner'],
+  'Social media graphic': ['Social media graphic'],
+  'Multi-channel campaign': [...DEMO_FORMATS],
 }
 
 function uid(prefix: string) {
@@ -308,16 +314,16 @@ function detectAnsweredQuestions(
   const answered = new Set<UnderstandingQuestionId>()
 
   const formatHints = [
-    'email',
-    'social',
-    'linkedin',
-    'banner',
-    'flyer',
-    'brochure',
     'infographic',
+    'brochure',
+    'flyer',
+    'banner',
+    'social',
+    'graphic',
+    'email',
+    'linkedin',
     'post',
     'ad',
-    'graphic',
   ]
   if (starter || formatHints.some((hint) => lower.includes(hint))) {
     answered.add('create')
@@ -370,9 +376,7 @@ function inferUnderstanding(
     lower.includes('enterprise') || lower.includes('b2b') || lower.includes('demo')
   const formats = starter
     ? STARTER_FORMATS[starter]
-    : enterprise
-      ? ['Email', 'LinkedIn post', 'Banner']
-      : ['Social post', 'Email']
+    : [...DEMO_FORMATS]
   const answered = detectAnsweredQuestions(intent, starter)
   const objective = intent.trim() || 'Launch a new campaign'
   const audienceKnown = answered.has('audience')
@@ -403,9 +407,7 @@ function inferUnderstanding(
       ? 'Campaigns rebuilt from scratch without approved brand memory'
       : ''
 
-  const channels = formats.includes('Email')
-    ? ['Email', 'LinkedIn', 'Web']
-    : ['LinkedIn', 'Paid social']
+  const channels = ['Web', 'Paid social', 'Events']
 
   return {
     objective,
@@ -537,20 +539,20 @@ function buildAssets(
   const formats =
     starter && STARTER_FORMATS[starter]
       ? STARTER_FORMATS[starter]
-      : understanding.formats.slice(0, 3)
+      : understanding.formats.length > 0
+        ? understanding.formats
+        : [...DEMO_FORMATS]
 
   return formats.map((format, index) => {
+    const lower = format.toLowerCase()
     const isImageHeavy =
-      format.toLowerCase().includes('banner') ||
-      format.toLowerCase().includes('infographic') ||
-      format.toLowerCase().includes('flyer') ||
-      format.toLowerCase().includes('brochure')
-    const type: AssetType =
-      format.toLowerCase().includes('email') || format.toLowerCase().includes('linkedin')
-        ? 'combined'
-        : isImageHeavy
-          ? 'image'
-          : 'text'
+      lower.includes('banner') ||
+      lower.includes('infographic') ||
+      lower.includes('flyer') ||
+      lower.includes('brochure') ||
+      lower.includes('social') ||
+      lower.includes('graphic')
+    const type: AssetType = isImageHeavy ? 'image' : 'combined'
 
     return {
       id: uid('asset'),
@@ -563,13 +565,21 @@ function buildAssets(
         ? index === 0
           ? 'A clear offer for the right buyers.'
           : index === 1
-            ? 'Start the conversation with one proof point.'
-            : 'One message. One next step.'
+            ? 'Start with one proof point.'
+            : index === 2
+              ? 'One message. One next step.'
+              : index === 3
+                ? 'Make the value obvious at a glance.'
+                : 'Share-ready proof for social.'
         : index === 0
           ? 'See what enterprise teams already proved works.'
           : index === 1
             ? 'Stop rebuilding campaigns from scratch.'
-            : 'One brief. On-brand assets across channels.',
+            : index === 2
+              ? 'One brief. On-brand assets across channels.'
+              : index === 3
+                ? 'Capture attention with a single claim.'
+                : 'Proof that travels across social feeds.',
       body: exploratory
         ? `${understanding.objective} Temporary styling — connect your brand system to validate voice and visual rules.`
         : `${understanding.objective} Built for ${understanding.primaryAudience || understanding.audience}, using patterns from ${understanding.priorCampaigns[0]}.`,
@@ -1485,9 +1495,20 @@ export function AiConversationProvider({ children }: { children: ReactNode }) {
         } else if (lower.includes('legal')) {
           reply =
             'Added a Legal approval step before publishing in the workflow, and flagged claims that need counsel review.'
-        } else if (lower.includes('linkedin') || lower.includes('email')) {
+        } else if (
+          lower.includes('infographic') ||
+          lower.includes('brochure') ||
+          lower.includes('flyer') ||
+          lower.includes('banner') ||
+          lower.includes('social') ||
+          lower.includes('linkedin') ||
+          lower.includes('email')
+        ) {
           reply =
-            'Created LinkedIn and email variations from the current campaign direction. They’re in the output panel.'
+            'Created infographic, brochure, flyer, banner, and social graphic variations from the current campaign direction. They’re in the output panel.'
+          if (understanding) {
+            setAssets(buildAssets(understanding, starter, isExploratoryDraft))
+          }
         } else if (understanding) {
           setAssets(buildAssets(understanding, starter, isExploratoryDraft))
         }
@@ -1744,11 +1765,10 @@ export function useAiConversation() {
 }
 
 export const CAMPAIGN_STARTERS: CampaignStarter[] = [
-  'Email',
-  'Social post',
-  'Banner',
-  'Flyer',
-  'Brochure',
   'Infographic',
+  'Brochure',
+  'Flyer',
+  'Banner',
+  'Social media graphic',
   'Multi-channel campaign',
 ]
