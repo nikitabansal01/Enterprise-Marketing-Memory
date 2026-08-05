@@ -1,5 +1,7 @@
+import { useEffect, useId, useState } from 'react'
 import {
   useAiConversation,
+  type CampaignUnderstanding,
   type FieldProvenance,
   type UnderstandingFieldKey,
 } from '../../lib/aiConversation'
@@ -12,6 +14,25 @@ const PROVENANCE_LABEL: Record<FieldProvenance, string> = {
   'needs-confirmation': 'Needs confirmation',
 }
 
+function ChevronIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      className={['ai-understanding__chevron', open ? 'is-open' : ''].join(' ')}
+      viewBox="0 0 16 16"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M4 6.5 8 10.5 12 6.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 export default function CampaignUnderstandingCard({
   compact = false,
   editing = true,
@@ -19,20 +40,98 @@ export default function CampaignUnderstandingCard({
   compact?: boolean
   editing?: boolean
 }) {
-  const { understanding, updateUnderstanding } = useAiConversation()
+  const { understanding, updateUnderstanding, isGenerating, execution } =
+    useAiConversation()
+  const panelId = useId()
+  const [expanded, setExpanded] = useState(!compact)
+
+  useEffect(() => {
+    if (!compact) return
+    if (isGenerating || execution?.status === 'running') {
+      setExpanded(false)
+    }
+  }, [compact, isGenerating, execution?.status])
 
   if (!understanding) return null
 
+  const summaryBits = [
+    understanding.primaryAudience,
+    understanding.channels.slice(0, 2).join(' · '),
+  ].filter(Boolean)
+
+  if (compact) {
+    return (
+      <section
+        className={[
+          'ai-understanding',
+          'ai-understanding--compact',
+          expanded ? 'is-expanded' : 'is-collapsed',
+        ].join(' ')}
+        aria-label="Campaign understanding"
+      >
+        <button
+          type="button"
+          className="ai-understanding__toggle"
+          aria-expanded={expanded}
+          aria-controls={panelId}
+          onClick={() => setExpanded((open) => !open)}
+        >
+          <span className="ai-understanding__toggle-copy">
+            <span className="section-label">Campaign Understanding</span>
+            <span className="ai-understanding__summary">
+              {understanding.objective || 'No objective yet'}
+              {summaryBits.length > 0 ? ` · ${summaryBits.join(' · ')}` : ''}
+            </span>
+          </span>
+          <span className="ai-understanding__toggle-meta">
+            <span className="meta">{expanded ? 'Hide' : 'Edit'}</span>
+            <ChevronIcon open={expanded} />
+          </span>
+        </button>
+
+        {expanded && (
+          <div id={panelId} className="ai-understanding__body">
+            <UnderstandingFields
+              understanding={understanding}
+              editing={editing}
+              compact
+              updateUnderstanding={updateUnderstanding}
+            />
+          </div>
+        )}
+      </section>
+    )
+  }
+
   return (
-    <section
-      className={['ai-understanding', compact ? 'ai-understanding--compact' : ''].join(' ')}
-      aria-label="Campaign understanding"
-    >
+    <section className="ai-understanding" aria-label="Campaign understanding">
       <div className="flex items-baseline justify-between gap-2">
         <h2 className="section-label">Campaign Understanding</h2>
         <span className="meta">{editing ? 'Editable' : 'Review'}</span>
       </div>
+      <UnderstandingFields
+        understanding={understanding}
+        editing={editing}
+        compact={false}
+        updateUnderstanding={updateUnderstanding}
+      />
+    </section>
+  )
+}
 
+function UnderstandingFields({
+  understanding,
+  editing,
+  compact,
+  updateUnderstanding,
+}: {
+  understanding: CampaignUnderstanding
+  editing: boolean
+  compact: boolean
+  updateUnderstanding: (patch: Partial<CampaignUnderstanding>) => void
+}) {
+  return (
+    <>
       <FieldText
         label="Campaign objective"
         field="objective"
@@ -145,7 +244,7 @@ export default function CampaignUnderstandingCard({
           />
         </>
       )}
-    </section>
+    </>
   )
 }
 
