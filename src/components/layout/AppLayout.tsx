@@ -28,7 +28,9 @@ export default function AppLayout() {
             <div
               key={studio ? 'p1-studio' : `${phase}:${location.pathname}`}
               className={[
-                studio ? 'page-enter h-full min-h-0' : 'page-enter min-h-full overflow-auto',
+                studio
+                  ? 'page-enter flex min-h-0 flex-1 flex-col'
+                  : 'page-enter min-h-full overflow-auto',
                 studio ? '' : 'px-6 py-7 sm:px-8 lg:px-10',
               ].join(' ')}
             >

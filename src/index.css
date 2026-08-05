@@ -1060,6 +1060,11 @@ body {
     flex-direction: column;
   }
 
+  .ai-workspace__main > .page-enter {
+    min-height: 0;
+    flex: 1;
+  }
+
   .ai-workspace__ask {
     position: absolute;
     right: 0.75rem;

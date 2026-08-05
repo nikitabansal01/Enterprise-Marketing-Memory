@@ -804,7 +804,8 @@ export function AiConversationProvider({ children }: { children: ReactNode }) {
 
   const panelPrefs = panelByContext[panelContext] ?? {
     ...DEFAULT_PANEL,
-    collapsed: true,
+    // Studio keeps the conversation visible by default; collapse is still one click.
+    collapsed: panelContext === 'studio' ? false : true,
     widthPct: panelContext === 'campaign' || hasActiveCampaign ? 32 : DEFAULT_PANEL.widthPct,
   }
 

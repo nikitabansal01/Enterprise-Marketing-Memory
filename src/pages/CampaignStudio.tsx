@@ -1476,10 +1476,10 @@ export default function CampaignStudio() {
           </div>
         </div>
 
-        {aiOpen && (
+        {aiOpen && panelCollapsed && (
           <aside
             className={[
-              'absolute right-3 bottom-3 z-20 w-[min(100%-1.5rem,22rem)] rounded-2xl border border-border bg-white/95 p-3.5 shadow-[var(--shadow-lift-md)] backdrop-blur-md',
+              'absolute right-3 bottom-16 z-20 w-[min(100%-1.5rem,22rem)] rounded-2xl border border-border bg-white/95 p-3.5 shadow-[var(--shadow-lift-md)] backdrop-blur-md',
               aiPulse ? 'campaign-canvas__ai-pulse' : '',
             ].join(' ')}
           >
@@ -1526,11 +1526,11 @@ export default function CampaignStudio() {
           </aside>
         )}
 
-        {!aiOpen && (
+        {!aiOpen && panelCollapsed && (
           <button
             type="button"
             onClick={() => setAiOpen(true)}
-            className="absolute right-3 bottom-3 z-20 rounded-full border border-border bg-white px-3 py-2 text-[12px] font-medium text-brand-700 shadow-[var(--shadow-soft)]"
+            className="absolute right-3 bottom-16 z-20 rounded-full border border-border bg-white px-3 py-2 text-[12px] font-medium text-brand-700 shadow-[var(--shadow-soft)]"
           >
             Memory suggestions
           </button>
