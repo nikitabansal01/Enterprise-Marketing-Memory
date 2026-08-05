@@ -203,9 +203,7 @@ export default function AiConversationPanel() {
           ))
         )}
         {execution &&
-          (execution.status === 'running' ||
-            execution.status === 'needs-input' ||
-            (execution.status === 'complete' && execution.kind !== 'understanding')) && (
+          (execution.status === 'running' || execution.status === 'needs-input') && (
             <AiExecutionProgress execution={execution} compact />
           )}
         {isExploratoryDraft && understandingPhase === 'confirmed' && (

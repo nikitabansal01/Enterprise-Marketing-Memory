@@ -18,6 +18,7 @@ export default function CampaignUnderstandingFlow() {
     execution,
     sendMessage,
     beginConnectBrand,
+    confirmUnderstanding,
     createExploratoryDraft,
   } = useAiConversation()
 
@@ -117,17 +118,30 @@ export default function CampaignUnderstandingFlow() {
           <CampaignUnderstandingCard editing />
 
           <div className="understanding-flow__actions">
-            <button
-              type="button"
-              className="btn-primary"
-              disabled={isGenerating}
-              onClick={createExploratoryDraft}
-            >
-              Create an exploratory draft
-            </button>
-            <button type="button" className="btn-secondary" onClick={goConnectBrand}>
-              Connect brand system first
-            </button>
+            {hasVerifiedBrandSource ? (
+              <button
+                type="button"
+                className="btn-primary"
+                disabled={isGenerating}
+                onClick={() => confirmUnderstanding('branded')}
+              >
+                Looks right — generate assets
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  disabled={isGenerating}
+                  onClick={createExploratoryDraft}
+                >
+                  Create an exploratory draft
+                </button>
+                <button type="button" className="btn-secondary" onClick={goConnectBrand}>
+                  Connect brand system first
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

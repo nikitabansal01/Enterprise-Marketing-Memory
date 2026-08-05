@@ -2004,6 +2004,44 @@ body {
     max-height: none;
   }
 
+  .ai-understanding__bar {
+    display: flex;
+    width: 100%;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.7rem 1rem;
+  }
+
+  .ai-understanding__edit {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.05rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    background: var(--color-surface);
+    padding: 0.3rem 0.55rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--color-brand-700);
+    box-shadow: var(--shadow-soft);
+    transition:
+      background-color var(--duration-fast) var(--ease-in-out-soft),
+      border-color var(--duration-fast) var(--ease-in-out-soft);
+  }
+
+  .ai-understanding__edit:hover {
+    border-color: var(--color-brand-200);
+    background: var(--color-brand-50);
+  }
+
+  .ai-understanding__edit:focus-visible {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: 2px;
+  }
+
   .ai-understanding__toggle {
     display: flex;
     width: 100%;

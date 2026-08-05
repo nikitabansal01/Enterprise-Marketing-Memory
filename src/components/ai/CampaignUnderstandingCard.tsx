@@ -43,23 +43,27 @@ export default function CampaignUnderstandingCard({
   const { understanding, updateUnderstanding, isGenerating, execution } =
     useAiConversation()
   const panelId = useId()
-  const [expanded, setExpanded] = useState(!compact)
+  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
     if (!compact) return
-    if (isGenerating || execution?.status === 'running') {
+    // Stay collapsed while generating or when a run finishes — chat stays for talk.
+    if (isGenerating || execution?.status === 'running' || execution?.status === 'complete') {
       setExpanded(false)
     }
   }, [compact, isGenerating, execution?.status])
 
   if (!understanding) return null
 
-  const summaryBits = [
-    understanding.primaryAudience,
-    understanding.channels.slice(0, 2).join(' · '),
-  ].filter(Boolean)
-
   if (compact) {
+    const summary = [
+      understanding.objective,
+      understanding.primaryAudience || understanding.audience,
+      understanding.channels.slice(0, 2).join(', '),
+    ]
+      .filter(Boolean)
+      .join(' · ')
+
     return (
       <section
         className={[
@@ -69,25 +73,24 @@ export default function CampaignUnderstandingCard({
         ].join(' ')}
         aria-label="Campaign understanding"
       >
-        <button
-          type="button"
-          className="ai-understanding__toggle"
-          aria-expanded={expanded}
-          aria-controls={panelId}
-          onClick={() => setExpanded((open) => !open)}
-        >
-          <span className="ai-understanding__toggle-copy">
-            <span className="section-label">Campaign Understanding</span>
-            <span className="ai-understanding__summary">
-              {understanding.objective || 'No objective yet'}
-              {summaryBits.length > 0 ? ` · ${summaryBits.join(' · ')}` : ''}
-            </span>
-          </span>
-          <span className="ai-understanding__toggle-meta">
-            <span className="meta">{expanded ? 'Hide' : 'Edit'}</span>
+        <div className="ai-understanding__bar">
+          <div className="ai-understanding__toggle-copy">
+            <p className="section-label">Campaign Understanding</p>
+            <p className="ai-understanding__summary" title={summary}>
+              {summary || 'No details yet'}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="ai-understanding__edit"
+            aria-expanded={expanded}
+            aria-controls={panelId}
+            onClick={() => setExpanded((open) => !open)}
+          >
+            {expanded ? 'Done' : 'Edit'}
             <ChevronIcon open={expanded} />
-          </span>
-        </button>
+          </button>
+        </div>
 
         {expanded && (
           <div id={panelId} className="ai-understanding__body">
@@ -197,26 +200,27 @@ function UnderstandingFields({
         onChange={(channels) => updateUnderstanding({ channels })}
       />
 
+      <p className="ai-understanding__group">Campaign shape</p>
+      <FieldList
+        label="Asset formats"
+        field="formats"
+        provenance={understanding.provenance.formats}
+        value={understanding.formats}
+        editing={editing}
+        onChange={(formats) => updateUnderstanding({ formats })}
+      />
+      <FieldText
+        label="Core message"
+        field="coreMessage"
+        provenance={understanding.provenance.coreMessage}
+        value={understanding.coreMessage}
+        rows={2}
+        editing={editing}
+        onChange={(coreMessage) => updateUnderstanding({ coreMessage })}
+      />
+
       {!compact && (
         <>
-          <p className="ai-understanding__group">Campaign shape</p>
-          <FieldList
-            label="Asset formats"
-            field="formats"
-            provenance={understanding.provenance.formats}
-            value={understanding.formats}
-            editing={editing}
-            onChange={(formats) => updateUnderstanding({ formats })}
-          />
-          <FieldText
-            label="Core message"
-            field="coreMessage"
-            provenance={understanding.provenance.coreMessage}
-            value={understanding.coreMessage}
-            rows={2}
-            editing={editing}
-            onChange={(coreMessage) => updateUnderstanding({ coreMessage })}
-          />
           <FieldList
             label="Relevant templates"
             field="templates"

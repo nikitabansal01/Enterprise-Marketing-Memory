@@ -70,11 +70,23 @@ export default function CampaignOutputWorkspace() {
 
   return (
     <div className="ai-output">
-      {execution?.kind === 'generation' && execution.status === 'complete' && (
-        <div className="mb-4">
-          <AiExecutionProgress execution={execution} />
+      <header className="ai-output__header">
+        <div>
+          <p className="eyebrow text-brand-600">Campaign output</p>
+          <h2 className="mt-1 text-base font-semibold tracking-tight text-foreground">
+            {understanding?.objective ?? 'Generated assets'}
+          </h2>
         </div>
-      )}
+        <p className="meta">{assets.length} assets</p>
+      </header>
+
+      {execution?.kind === 'generation' &&
+        execution.status === 'complete' &&
+        execution.summary && (
+          <div className="mb-4">
+            <AiExecutionProgress execution={execution} />
+          </div>
+        )}
 
       {isExploratoryDraft && (
         <div className="exploratory-banner" role="status">
@@ -93,16 +105,6 @@ export default function CampaignOutputWorkspace() {
           </Link>
         </div>
       )}
-
-      <header className="ai-output__header">
-        <div>
-          <p className="eyebrow text-brand-600">Campaign output</p>
-          <h2 className="mt-1 text-base font-semibold tracking-tight text-foreground">
-            {understanding?.objective ?? 'Generated assets'}
-          </h2>
-        </div>
-        <p className="meta">{assets.length} assets</p>
-      </header>
 
       <div className="ai-output__grid">
         {assets.map((asset) => (

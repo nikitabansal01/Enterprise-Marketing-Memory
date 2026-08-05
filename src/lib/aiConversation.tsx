@@ -591,10 +591,6 @@ function panelKeyFromPath(pathname: string): PanelContextKey {
   return 'home'
 }
 
-function essentialFollowUp(understanding: CampaignUnderstanding): string {
-  return `Here’s what I inferred. Edit anything that looks off, then I’ll refine the drafts.\n\n• Primary audience: ${understanding.primaryAudience || understanding.audience}\n• Channels: ${understanding.channels.join(', ')}\n• Formats: ${understanding.formats.join(', ')}\n• Core message: ${understanding.coreMessage}\n• Templates: ${understanding.templates.join(', ')}\n• Similar campaigns: ${understanding.priorCampaigns.join(', ')}\n\nAnything critical I’m missing — deadline, offer, or compliance constraint?`
-}
-
 function questionPrompt(id: UnderstandingQuestionId): string {
   return UNDERSTANDING_QUESTIONS.find((q) => q.id === id)?.prompt ?? ''
 }
@@ -1139,8 +1135,8 @@ export function AiConversationProvider({ children }: { children: ReactNode }) {
             id: uid('msg'),
             role: 'assistant',
             content: exploratory
-              ? `Your campaign package is ready as an exploratory draft.\n\n${essentialFollowUp(inferred)}\n\nRecommended next: connect your brand system so these assets can be validated.`
-              : `Your campaign package is ready.\n\n${essentialFollowUp(inferred)}`,
+              ? 'Drafts are on the right. Connect your brand system when you’re ready to validate them.'
+              : 'Drafts are on the right. Ask here for revisions, or confirm brand fit when ready.',
             timestamp: Date.now(),
           },
         ])
@@ -1254,27 +1250,49 @@ export function AiConversationProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      // Drafts live on Home — leave the understanding screen and open the package view.
-      setHasActiveCampaign(true)
-      openCampaignWorkspace()
-
+      // Finished package — open the campaign output on Home.
       if (
-        understanding &&
-        (understandingPhase === 'review' ||
-          understandingPhase === 'questions' ||
-          understandingPhase === 'preparing')
+        understandingPhase === 'confirmed' &&
+        (assets.length > 0 || hasActiveCampaign)
       ) {
-        createExploratoryDraft()
+        setHasActiveCampaign(true)
+        openCampaignWorkspace()
         return
       }
 
-      if (understandingPhase !== 'confirmed') {
-        setUnderstandingPhase('confirmed')
+      // Mid understanding — stay in the question / review flow (don't skip to drafts).
+      if (
+        understandingPhase === 'review' ||
+        understandingPhase === 'questions' ||
+        understandingPhase === 'preparing'
+      ) {
+        setExperiencePreviewState('new')
+        setCampaignWorkspaceOpen(false)
+        setHasActiveCampaign(false)
+        return
       }
+
+      // First draft with no understanding yet — same path as describing a campaign.
+      setExperiencePreviewState('new')
+      setCampaignWorkspaceOpen(false)
+      setHasActiveCampaign(false)
+
+      const intentText = savedCampaignBrief?.trim()
+      if (intentText) {
+        submitIntent(intentText, starter)
+        return
+      }
+
+      setUnderstandingPhase('idle')
+      setOpenQuestionIds([])
     },
     [
-      createExploratoryDraft,
+      assets.length,
+      hasActiveCampaign,
       openCampaignWorkspace,
+      savedCampaignBrief,
+      starter,
+      submitIntent,
       understanding,
       understandingPhase,
     ],
@@ -1331,27 +1349,34 @@ export function AiConversationProvider({ children }: { children: ReactNode }) {
     setIsReturningUser(true)
     setWorkspaceStatus('established')
     setIsExploratoryDraft(false)
-
-    const intentText = savedCampaignBrief?.trim()
-    if (intentText) {
-      setExperiencePreviewState('new')
-      const inferred = understanding ?? inferUnderstanding(intentText, starter)
-      setUnderstanding(inferred)
-      generateCampaignDraft(intentText, starter, false, inferred)
-      return
-    }
-
-    // No brief yet — land on Home campaign composer with brand already connected.
     setExperiencePreviewState('new')
     setCampaignWorkspaceOpen(false)
     setHasActiveCampaign(false)
-    setUnderstandingPhase('idle')
-    setOpenQuestionIds([])
     setPanelByContext((prev) => ({
       ...prev,
       home: { collapsed: true, widthPct: prev.home?.widthPct ?? 32 },
     }))
-  }, [generateCampaignDraft, savedCampaignBrief, starter, understanding])
+
+    // Resume in-progress understanding instead of jumping to drafts.
+    if (
+      understandingPhase === 'questions' ||
+      understandingPhase === 'preparing' ||
+      understandingPhase === 'review'
+    ) {
+      return
+    }
+
+    const intentText = savedCampaignBrief?.trim()
+    if (intentText) {
+      // Same question flow as “describe the campaign”.
+      submitIntent(intentText, starter)
+      return
+    }
+
+    // No brief yet — open the campaign composer; questions follow on submit.
+    setUnderstandingPhase('idle')
+    setOpenQuestionIds([])
+  }, [savedCampaignBrief, starter, submitIntent, understandingPhase])
 
   const goToCampaignDashboard = useCallback(() => {
     setHasVerifiedBrandSource(true)
