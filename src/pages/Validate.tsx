@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import ConfidenceBar from '../components/ui/ConfidenceBar'
 import StatusBadge from '../components/ui/StatusBadge'
 import { useAiConversation } from '../lib/aiConversation'
@@ -98,9 +98,14 @@ function statusLabel(status: CheckStatus): string {
 }
 
 export default function Validate() {
+  const navigate = useNavigate()
   const exportHref = usePhaseHref('export')
-  const createHref = usePhaseHref('create-campaign')
-  const { assets, understanding, isExploratoryDraft } = useAiConversation()
+  const {
+    assets,
+    understanding,
+    isExploratoryDraft,
+    openCampaignWorkflowStep,
+  } = useAiConversation()
 
   const fitAssets = useMemo<FitAsset[]>(() => {
     if (assets.length === 0) return DEFAULT_ASSETS
@@ -316,9 +321,16 @@ export default function Validate() {
         >
           Continue to export
         </Link>
-        <Link to={createHref} className="btn-secondary px-6 py-3.5">
-          Back to directions
-        </Link>
+        <button
+          type="button"
+          className="btn-secondary px-6 py-3.5"
+          onClick={() => {
+            openCampaignWorkflowStep('drafts')
+            navigate('/p0')
+          }}
+        >
+          Back to drafts
+        </button>
       </div>
     </div>
   )

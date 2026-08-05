@@ -3,7 +3,7 @@ import AppLayout from './components/layout/AppLayout'
 import { AiConversationProvider } from './lib/aiConversation'
 import CampaignIntelligence from './pages/CampaignIntelligence'
 import CampaignStudio from './pages/CampaignStudio'
-import CreateCampaign from './pages/CreateCampaign'
+import CampaignWorkflowRedirect from './pages/CampaignWorkflowRedirect'
 import Dashboard from './pages/Dashboard'
 import Export from './pages/Export'
 import LearnBrand from './pages/LearnBrand'
@@ -21,7 +21,10 @@ export default function App() {
           <Route path="p0">
             <Route index element={<Dashboard />} />
             <Route path="learn-brand" element={<LearnBrand />} />
-            <Route path="create-campaign" element={<CreateCampaign />} />
+            <Route
+              path="create-campaign"
+              element={<CampaignWorkflowRedirect step="drafts" />}
+            />
             <Route path="validate" element={<Validate />} />
             <Route path="export" element={<Export />} />
             <Route path="operationalize" element={<Navigate to="/p1" replace />} />

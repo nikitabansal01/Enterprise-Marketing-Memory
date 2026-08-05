@@ -1,5 +1,9 @@
 import { useEffect, useId, useState, type ReactNode } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import {
+  useAiConversation,
+  type CampaignWorkflowStep,
+} from '../../lib/aiConversation'
 import { phaseFromPath, phasePath, restPath, type Phase } from '../../lib/phases'
 
 type IconProps = { className?: string }
@@ -9,6 +13,8 @@ type ChildLink = {
   icon: (props: IconProps) => ReactNode
   /** Treat empty rest as active (e.g. Canvas at /p1) */
   matchEmpty?: boolean
+  /** Bound to the conversational campaign flow on Home */
+  workflow?: CampaignWorkflowStep
 }
 
 function IconShell({ children, className }: { children: ReactNode; className?: string }) {
@@ -149,15 +155,6 @@ function WorkspaceIcon({ className }: IconProps) {
   )
 }
 
-function AdminIcon({ className }: IconProps) {
-  return (
-    <IconShell className={className}>
-      <circle cx="8" cy="5.5" r="2.25" />
-      <path d="M3.5 13c.6-2.2 2.2-3.5 4.5-3.5s3.9 1.3 4.5 3.5" />
-    </IconShell>
-  )
-}
-
 function SettingsIcon({ className }: IconProps) {
   return (
     <IconShell className={className}>
@@ -196,8 +193,19 @@ function loadSidebarCollapsed() {
 
 const memoryChildren: ChildLink[] = [
   { path: 'learn-brand', label: 'Teach AI Your Brand', icon: TeachIcon },
-  { path: 'learn-brand', label: 'Review AI Understanding', icon: ReviewIcon },
-  { path: 'create-campaign', label: 'Create First Draft', icon: DraftIcon },
+  {
+    path: '',
+    label: 'Confirm understanding',
+    icon: ReviewIcon,
+    workflow: 'understanding',
+  },
+  {
+    path: '',
+    label: 'Create first draft',
+    icon: DraftIcon,
+    workflow: 'drafts',
+  },
+  { path: 'validate', label: 'Confirm brand fit', icon: ApprovalsNavIcon },
   { path: 'export', label: 'Export & Publish', icon: ExportIcon },
 ]
 
@@ -209,11 +217,18 @@ const studioChildren: ChildLink[] = [
 ]
 
 const workspaceChildren: ChildLink[] = [
-  { path: 'validate', label: 'Administration', icon: AdminIcon },
   { path: 'settings', label: 'Settings', icon: SettingsIcon },
 ]
 
-function childActive(pathname: string, child: ChildLink, phase: Phase = 'p0') {
+function childActive(
+  pathname: string,
+  child: ChildLink,
+  phase: Phase = 'p0',
+  workflowActive?: Partial<Record<CampaignWorkflowStep, boolean>>,
+) {
+  if (child.workflow) {
+    return Boolean(workflowActive?.[child.workflow])
+  }
   const current = phaseFromPath(pathname)
   if (current !== phase) return false
   const rest = restPath(pathname, phase)
@@ -230,13 +245,17 @@ function NavChildren({
   open,
   items,
   phase,
+  workflowActive,
 }: {
   id: string
   open: boolean
   items: ChildLink[]
   phase: Phase
+  workflowActive?: Partial<Record<CampaignWorkflowStep, boolean>>
 }) {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { openCampaignWorkflowStep } = useAiConversation()
 
   return (
     <div
@@ -248,12 +267,44 @@ function NavChildren({
       <div className="app-sidebar__panel-inner">
         <ul className="app-sidebar__children" role="list">
           {items.map((child) => {
-            const active = childActive(location.pathname, child, phase)
+            const active = childActive(
+              location.pathname,
+              child,
+              phase,
+              workflowActive,
+            )
             const Icon = child.icon
             const href =
-              child.matchEmpty && child.path === 'canvas'
+              child.workflow || (child.matchEmpty && child.path === 'canvas')
                 ? phasePath(phase)
                 : phasePath(phase, child.path)
+
+            if (child.workflow) {
+              return (
+                <li key={child.label}>
+                  <NavLink
+                    to={href}
+                    className={[
+                      'app-sidebar__item app-sidebar__item--child',
+                      active ? 'is-active' : '',
+                    ].join(' ')}
+                    aria-current={active ? 'page' : undefined}
+                    tabIndex={open ? undefined : -1}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      openCampaignWorkflowStep(child.workflow!)
+                      if (location.pathname !== href) {
+                        navigate(href)
+                      }
+                    }}
+                  >
+                    <Icon className="app-sidebar__icon" />
+                    <span className="app-sidebar__label">{child.label}</span>
+                  </NavLink>
+                </li>
+              )
+            }
+
             return (
               <li key={child.label}>
                 <NavLink
@@ -286,10 +337,29 @@ export default function Sidebar() {
   const memoryPanelId = `${uid}-memory`
   const studioPanelId = `${uid}-studio`
   const workspacePanelId = `${uid}-workspace`
+  const {
+    showUnderstandingFlow,
+    showCampaignOutput,
+    understandingPhase,
+  } = useAiConversation()
 
-  const homeActive = phase === 'p0' && rest === ''
+  const workflowActive: Partial<Record<CampaignWorkflowStep, boolean>> = {
+    understanding:
+      phase === 'p0' &&
+      rest === '' &&
+      (showUnderstandingFlow || understandingPhase === 'review'),
+    drafts: phase === 'p0' && rest === '' && showCampaignOutput,
+  }
+
+  const homeActive =
+    phase === 'p0' &&
+    rest === '' &&
+    !showUnderstandingFlow &&
+    !showCampaignOutput &&
+    understandingPhase !== 'review'
+
   const memoryChildActive = memoryChildren.some((child) =>
-    childActive(location.pathname, child, 'p0'),
+    childActive(location.pathname, child, 'p0', workflowActive),
   )
   const studioChildActive = studioChildren.some((child) =>
     childActive(location.pathname, child, 'p1'),
@@ -299,7 +369,8 @@ export default function Sidebar() {
   )
   const studioActive = phase === 'p1'
   const intelligenceActive = phase === 'p2'
-  const memoryPhaseActive = homeActive || memoryChildActive
+  const memoryPhaseActive =
+    homeActive || memoryChildActive || (phase === 'p0' && rest !== 'settings')
 
   const [collapsed, setCollapsed] = useState(loadSidebarCollapsed)
   const [memoryOpen, setMemoryOpen] = useState(() => memoryPhaseActive)
@@ -416,6 +487,7 @@ export default function Sidebar() {
             open={!collapsed && memoryOpen}
             items={memoryChildren}
             phase="p0"
+            workflowActive={workflowActive}
           />
         </div>
 

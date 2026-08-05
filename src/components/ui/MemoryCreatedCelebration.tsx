@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAiConversation } from '../../lib/aiConversation'
 import { usePhaseHref } from '../../lib/usePhase'
 
@@ -27,8 +27,8 @@ const memoryCards = [
 
 export default function MemoryCreatedCelebration() {
   const homeHref = usePhaseHref()
-  const createCampaignHref = usePhaseHref('create-campaign')
-  const { approveVerifiedBrandSource } = useAiConversation()
+  const navigate = useNavigate()
+  const { continueToFirstDraft, goToCampaignDashboard } = useAiConversation()
 
   return (
     <div className="fade-in page-shell page-shell--narrow items-center py-8 text-center">
@@ -65,21 +65,27 @@ export default function MemoryCreatedCelebration() {
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
-        <Link
-          to={homeHref}
+      <div className="relative z-10 flex flex-wrap items-center justify-center gap-2.5 pt-2">
+        <button
+          type="button"
           className="btn-primary px-6 py-3.5 text-[15px]"
-          onClick={() => approveVerifiedBrandSource()}
+          onClick={() => {
+            continueToFirstDraft()
+            navigate(homeHref)
+          }}
+        >
+          Create first draft
+        </button>
+        <button
+          type="button"
+          className="btn-secondary px-6 py-3.5 text-[15px]"
+          onClick={() => {
+            goToCampaignDashboard()
+            navigate(homeHref)
+          }}
         >
           Go to campaign dashboard
-        </Link>
-        <Link
-          to={createCampaignHref}
-          className="btn-secondary px-6 py-3.5 text-[15px]"
-          onClick={() => approveVerifiedBrandSource()}
-        >
-          Create First Draft
-        </Link>
+        </button>
       </div>
     </div>
   )

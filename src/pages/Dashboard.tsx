@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import AiWelcome from '../components/ai/AiWelcome'
 import CampaignUnderstandingFlow from '../components/ai/CampaignUnderstandingFlow'
 import ConfidenceBar from '../components/ui/ConfidenceBar'
@@ -92,12 +92,19 @@ function ChevronIcon({ className }: { className?: string }) {
 }
 
 function DashboardBody() {
+  const navigate = useNavigate()
   const learnBrandHref = usePhaseHref('learn-brand')
-  const createCampaignHref = usePhaseHref('create-campaign')
+  const homeHref = usePhaseHref()
+  const { openCampaignWorkflowStep } = useAiConversation()
   const [resolutions, setResolutions] = useState<Record<string, 'kept' | 'left'>>(
     {},
   )
   const [toast, setToast] = useState<MemoryToastPayload | null>(null)
+
+  function openDrafts() {
+    openCampaignWorkflowStep('drafts')
+    navigate(homeHref)
+  }
 
   function keepLearning(item: Learning) {
     setResolutions((prev) => ({ ...prev, [item.id]: 'kept' }))
@@ -208,9 +215,10 @@ function DashboardBody() {
               <ul className="-mx-2 divide-y divide-border">
                 {recentCampaigns.map((campaign) => (
                   <li key={campaign.id}>
-                    <Link
-                      to={`${createCampaignHref}?campaign=${campaign.id}`}
-                      className="row-hover grid grid-cols-1 items-center gap-2 rounded-lg px-2 py-3 sm:grid-cols-[minmax(0,1.4fr)_0.7fr_0.7fr_0.8fr_1.5rem] sm:gap-3"
+                    <button
+                      type="button"
+                      onClick={openDrafts}
+                      className="row-hover grid w-full grid-cols-1 items-center gap-2 rounded-lg px-2 py-3 text-left sm:grid-cols-[minmax(0,1.4fr)_0.7fr_0.7fr_0.8fr_1.5rem] sm:gap-3"
                     >
                       <span className="truncate text-sm font-medium text-foreground">
                         {campaign.name}
@@ -227,19 +235,20 @@ function DashboardBody() {
                         {campaign.updated}
                       </span>
                       <ChevronIcon className="hidden size-3.5 justify-self-end text-slate-300 sm:block" />
-                    </Link>
+                    </button>
                   </li>
                 ))}
               </ul>
             </div>
 
             <div className="mt-3">
-              <Link
-                to={createCampaignHref}
+              <button
+                type="button"
+                onClick={openDrafts}
                 className="text-[12px] font-medium text-brand-600 transition-colors duration-150 hover:text-brand-700"
               >
                 View all campaigns →
-              </Link>
+              </button>
             </div>
           </div>
 
@@ -247,9 +256,9 @@ function DashboardBody() {
             <Link to={learnBrandHref} className="btn-primary">
               Teach AI Your Brand
             </Link>
-            <Link to={createCampaignHref} className="btn-secondary">
-              Create First Draft
-            </Link>
+            <button type="button" className="btn-secondary" onClick={openDrafts}>
+              Create first draft
+            </button>
           </div>
         </section>
 

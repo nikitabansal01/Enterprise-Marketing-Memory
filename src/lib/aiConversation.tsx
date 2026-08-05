@@ -143,6 +143,8 @@ export type WorkspaceStatus = 'new' | 'established'
 /** @deprecated alias — use WorkspaceStatus for product state; experiencePreview for demo tab */
 export type WorkspacePreview = WorkspaceStatus
 
+export type CampaignWorkflowStep = 'understanding' | 'drafts'
+
 type PersistedAiState = {
   isReturningUser: boolean
   hasActiveCampaign: boolean
@@ -197,12 +199,15 @@ type AiConversationValue = {
   createExploratoryDraft: () => void
   confirmUnderstanding: (mode: 'branded' | 'exploratory') => void
   resumeSavedCampaignBrief: () => void
+  continueToFirstDraft: () => void
+  goToCampaignDashboard: () => void
   approveVerifiedBrandSource: () => void
   setPanelCollapsed: (collapsed: boolean) => void
   setPanelWidthPct: (pct: number) => void
   togglePanel: () => void
   openPanel: () => void
   openCampaignWorkspace: () => void
+  openCampaignWorkflowStep: (step: CampaignWorkflowStep) => void
   setSelection: (selection: SelectionContext | null) => void
   updateUnderstanding: (patch: Partial<CampaignUnderstanding>) => void
   submitIntent: (text: string, starter?: CampaignStarter | null) => void
@@ -1234,6 +1239,46 @@ export function AiConversationProvider({ children }: { children: ReactNode }) {
     confirmUnderstanding('exploratory')
   }, [confirmUnderstanding])
 
+  const openCampaignWorkflowStep = useCallback(
+    (step: CampaignWorkflowStep) => {
+      if (step === 'understanding') {
+        setExperiencePreviewState('new')
+        setCampaignWorkspaceOpen(false)
+        if (
+          understanding &&
+          (understandingPhase === 'confirmed' || understandingPhase === 'idle')
+        ) {
+          setUnderstandingPhase('review')
+        }
+        return
+      }
+
+      // Drafts live on Home — leave the understanding screen and open the package view.
+      setHasActiveCampaign(true)
+      openCampaignWorkspace()
+
+      if (
+        understanding &&
+        (understandingPhase === 'review' ||
+          understandingPhase === 'questions' ||
+          understandingPhase === 'preparing')
+      ) {
+        createExploratoryDraft()
+        return
+      }
+
+      if (understandingPhase !== 'confirmed') {
+        setUnderstandingPhase('confirmed')
+      }
+    },
+    [
+      createExploratoryDraft,
+      openCampaignWorkspace,
+      understanding,
+      understandingPhase,
+    ],
+  )
+
   const beginConnectBrand = useCallback(
     (brief?: string | null) => {
       const nextBrief = (brief ?? savedCampaignBrief)?.trim() || null
@@ -1279,6 +1324,45 @@ export function AiConversationProvider({ children }: { children: ReactNode }) {
     understanding,
     understandingPhase,
   ])
+
+  const continueToFirstDraft = useCallback(() => {
+    setHasVerifiedBrandSource(true)
+    setIsReturningUser(true)
+    setWorkspaceStatus('established')
+    setIsExploratoryDraft(false)
+
+    const intentText = savedCampaignBrief?.trim()
+    if (intentText) {
+      setExperiencePreviewState('new')
+      const inferred = understanding ?? inferUnderstanding(intentText, starter)
+      setUnderstanding(inferred)
+      generateCampaignDraft(intentText, starter, false, inferred)
+      return
+    }
+
+    // No brief yet — land on Home campaign composer with brand already connected.
+    setExperiencePreviewState('new')
+    setCampaignWorkspaceOpen(false)
+    setHasActiveCampaign(false)
+    setUnderstandingPhase('idle')
+    setOpenQuestionIds([])
+    setPanelByContext((prev) => ({
+      ...prev,
+      home: { collapsed: true, widthPct: prev.home?.widthPct ?? 32 },
+    }))
+  }, [generateCampaignDraft, savedCampaignBrief, starter, understanding])
+
+  const goToCampaignDashboard = useCallback(() => {
+    setHasVerifiedBrandSource(true)
+    setIsReturningUser(true)
+    setWorkspaceStatus('established')
+    setExperiencePreviewState('established')
+    setCampaignWorkspaceOpen(false)
+    setPanelByContext((prev) => ({
+      ...prev,
+      home: { collapsed: true, widthPct: prev.home?.widthPct ?? 32 },
+    }))
+  }, [])
 
   const sendMessage = useCallback(
     (text: string) => {
@@ -1593,12 +1677,15 @@ export function AiConversationProvider({ children }: { children: ReactNode }) {
     createExploratoryDraft,
     confirmUnderstanding,
     resumeSavedCampaignBrief,
+    continueToFirstDraft,
+    goToCampaignDashboard,
     approveVerifiedBrandSource,
     setPanelCollapsed,
     setPanelWidthPct,
     togglePanel,
     openPanel,
     openCampaignWorkspace,
+    openCampaignWorkflowStep,
     setSelection,
     updateUnderstanding,
     submitIntent,

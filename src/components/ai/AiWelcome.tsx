@@ -377,9 +377,12 @@ export default function AiWelcome() {
     savedCampaignBrief,
     setSavedCampaignBrief,
     beginConnectBrand,
+    hasVerifiedBrandSource,
   } = useAiConversation()
 
-  const [step, setStep] = useState<HomeStep>('choose')
+  const [step, setStep] = useState<HomeStep>(() =>
+    hasVerifiedBrandSource ? 'campaign' : 'choose',
+  )
   const [value, setValue] = useState(savedCampaignBrief ?? '')
   const [listening, setListening] = useState(false)
   const [selectedSources, setSelectedSources] = useState<string[]>(['brand', 'design'])
