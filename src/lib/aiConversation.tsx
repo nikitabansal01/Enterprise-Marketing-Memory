@@ -1233,7 +1233,7 @@ export function AiConversationProvider({ children }: { children: ReactNode }) {
           role: 'user',
           content:
             mode === 'exploratory'
-              ? 'Continue as exploratory draft'
+              ? 'Create an exploratory draft'
               : 'Looks right — generate assets',
           timestamp: Date.now(),
         },

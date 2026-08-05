@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { useId, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAiConversation } from '../../lib/aiConversation'
 import { usePhaseHref } from '../../lib/usePhase'
@@ -17,14 +17,11 @@ export default function CampaignUnderstandingFlow() {
     isGenerating,
     execution,
     sendMessage,
-    confirmUnderstanding,
     beginConnectBrand,
     createExploratoryDraft,
   } = useAiConversation()
 
   const [reply, setReply] = useState('')
-  const [hintAfterLooksRight, setHintAfterLooksRight] = useState(false)
-  const cardRef = useRef<HTMLDivElement>(null)
 
   const onSubmitReply = (e: FormEvent) => {
     e.preventDefault()
@@ -44,24 +41,6 @@ export default function CampaignUnderstandingFlow() {
   const goConnectBrand = () => {
     beginConnectBrand()
     navigate(learnBrandHref)
-  }
-
-  const onLooksRight = () => {
-    if (hasVerifiedBrandSource) {
-      confirmUnderstanding('branded')
-      return
-    }
-    setHintAfterLooksRight(true)
-  }
-
-  const onEditDetails = () => {
-    setHintAfterLooksRight(false)
-    cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    const first = cardRef.current?.querySelector('textarea, input') as
-      | HTMLTextAreaElement
-      | HTMLInputElement
-      | null
-    first?.focus()
   }
 
   const showPrep =
@@ -135,41 +114,21 @@ export default function CampaignUnderstandingFlow() {
             </p>
           )}
 
-          <div ref={cardRef}>
-            <CampaignUnderstandingCard editing />
-          </div>
+          <CampaignUnderstandingCard editing />
 
           <div className="understanding-flow__actions">
             <button
               type="button"
               className="btn-primary"
               disabled={isGenerating}
-              onClick={onLooksRight}
-            >
-              Looks right
-            </button>
-            <button type="button" className="btn-secondary" onClick={onEditDetails}>
-              Edit details
-            </button>
-            <button type="button" className="btn-secondary" onClick={goConnectBrand}>
-              Connect brand system
-            </button>
-            <button
-              type="button"
-              className="btn-secondary"
-              disabled={isGenerating}
               onClick={createExploratoryDraft}
             >
-              Continue as exploratory draft
+              Create an exploratory draft
+            </button>
+            <button type="button" className="btn-secondary" onClick={goConnectBrand}>
+              Connect brand system first
             </button>
           </div>
-
-          {!hasVerifiedBrandSource && hintAfterLooksRight && (
-            <p className="understanding-flow__hint">
-              Understanding confirmed. Connect your brand system or continue as an exploratory
-              draft to generate assets.
-            </p>
-          )}
         </div>
       )}
     </div>

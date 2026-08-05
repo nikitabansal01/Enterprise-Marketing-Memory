@@ -175,6 +175,25 @@ function ChevronIcon({ className }: IconProps) {
   )
 }
 
+function PanelCollapseIcon({ className }: IconProps) {
+  return (
+    <IconShell className={className}>
+      <rect x="2.5" y="2.5" width="11" height="11" rx="1.5" />
+      <path d="M6.5 2.5v11" />
+    </IconShell>
+  )
+}
+
+const SIDEBAR_COLLAPSED_KEY = 'emm-sidebar-collapsed-v1'
+
+function loadSidebarCollapsed() {
+  try {
+    return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
 const memoryChildren: ChildLink[] = [
   { path: 'learn-brand', label: 'Teach AI Your Brand', icon: TeachIcon },
   { path: 'learn-brand', label: 'Review AI Understanding', icon: ReviewIcon },
@@ -282,6 +301,7 @@ export default function Sidebar() {
   const intelligenceActive = phase === 'p2'
   const memoryPhaseActive = homeActive || memoryChildActive
 
+  const [collapsed, setCollapsed] = useState(loadSidebarCollapsed)
   const [memoryOpen, setMemoryOpen] = useState(() => memoryPhaseActive)
   const [studioOpen, setStudioOpen] = useState(() => studioActive)
   const [intelligenceOpen, setIntelligenceOpen] = useState(() => intelligenceActive)
@@ -294,13 +314,48 @@ export default function Sidebar() {
     if (workspaceChildActive) setWorkspaceOpen(true)
   }, [memoryPhaseActive, studioActive, intelligenceActive, workspaceChildActive])
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? '1' : '0')
+    } catch {
+      /* ignore */
+    }
+  }, [collapsed])
+
+  function expandSection(
+    setter: (value: boolean | ((open: boolean) => boolean)) => void,
+  ) {
+    setCollapsed(false)
+    setter(true)
+  }
+
   return (
-    <aside className="app-sidebar" aria-label="Product navigation">
+    <aside
+      className={['app-sidebar', collapsed ? 'app-sidebar--collapsed' : ''].join(' ')}
+      aria-label="Product navigation"
+      data-collapsed={collapsed ? 'true' : 'false'}
+    >
       <div className="app-sidebar__brand">
-        <p className="app-sidebar__brand-title">Marketing OS</p>
+        <p className="app-sidebar__brand-title" title="Marketing OS">
+          <span className="app-sidebar__brand-full">Marketing OS</span>
+          <span className="app-sidebar__brand-mark" aria-hidden="true">
+            M
+          </span>
+        </p>
+        <button
+          type="button"
+          className="app-sidebar__collapse"
+          aria-expanded={!collapsed}
+          aria-controls={uid}
+          aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+          title={collapsed ? 'Expand' : 'Collapse'}
+          onClick={() => setCollapsed((value) => !value)}
+        >
+          <PanelCollapseIcon className="app-sidebar__collapse-icon" />
+        </button>
       </div>
 
-      <nav className="app-sidebar__nav">
+      <nav id={uid} className="app-sidebar__nav">
         <NavLink
           to={phasePath('p0')}
           end
@@ -308,6 +363,7 @@ export default function Sidebar() {
             ' ',
           )}
           aria-current={homeActive ? 'page' : undefined}
+          title="Home"
         >
           <span className="app-sidebar__chevron-slot" aria-hidden="true" />
           <HomeIcon className="app-sidebar__icon" />
@@ -317,58 +373,94 @@ export default function Sidebar() {
         <div className="app-sidebar__divider" role="separator" />
 
         <div className="app-sidebar__group">
-          <button
-            type="button"
-            className={[
-              'app-sidebar__item app-sidebar__item--phase',
-              memoryPhaseActive ? 'is-current' : '',
-            ].join(' ')}
-            aria-expanded={memoryOpen}
-            aria-controls={memoryPanelId}
-            onClick={() => setMemoryOpen((open) => !open)}
-          >
-            <ChevronIcon
+          {collapsed ? (
+            <button
+              type="button"
               className={[
-                'app-sidebar__chevron',
-                memoryOpen ? 'is-open' : '',
+                'app-sidebar__item app-sidebar__item--phase',
+                memoryPhaseActive ? 'is-current is-active' : '',
               ].join(' ')}
-            />
-            <MemoryIcon className="app-sidebar__icon" />
-            <span className="app-sidebar__label">Enterprise Marketing Memory</span>
-            <PhaseBadge label="P0" />
-          </button>
+              title="Enterprise Marketing Memory"
+              aria-label="Enterprise Marketing Memory"
+              onClick={() => expandSection(setMemoryOpen)}
+            >
+              <span className="app-sidebar__chevron-slot" aria-hidden="true" />
+              <MemoryIcon className="app-sidebar__icon" />
+              <span className="app-sidebar__label">Enterprise Marketing Memory</span>
+              <PhaseBadge label="P0" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={[
+                'app-sidebar__item app-sidebar__item--phase',
+                memoryPhaseActive ? 'is-current' : '',
+              ].join(' ')}
+              aria-expanded={memoryOpen}
+              aria-controls={memoryPanelId}
+              onClick={() => setMemoryOpen((open) => !open)}
+            >
+              <ChevronIcon
+                className={[
+                  'app-sidebar__chevron',
+                  memoryOpen ? 'is-open' : '',
+                ].join(' ')}
+              />
+              <MemoryIcon className="app-sidebar__icon" />
+              <span className="app-sidebar__label">Enterprise Marketing Memory</span>
+              <PhaseBadge label="P0" />
+            </button>
+          )}
           <NavChildren
             id={memoryPanelId}
-            open={memoryOpen}
+            open={!collapsed && memoryOpen}
             items={memoryChildren}
             phase="p0"
           />
         </div>
 
         <div className="app-sidebar__group">
-          <button
-            type="button"
-            className={[
-              'app-sidebar__item app-sidebar__item--phase',
-              studioActive || studioChildActive ? 'is-current' : '',
-            ].join(' ')}
-            aria-expanded={studioOpen}
-            aria-controls={studioPanelId}
-            onClick={() => setStudioOpen((open) => !open)}
-          >
-            <ChevronIcon
+          {collapsed ? (
+            <button
+              type="button"
               className={[
-                'app-sidebar__chevron',
-                studioOpen ? 'is-open' : '',
+                'app-sidebar__item app-sidebar__item--phase',
+                studioActive || studioChildActive ? 'is-current is-active' : '',
               ].join(' ')}
-            />
-            <StudioIcon className="app-sidebar__icon" />
-            <span className="app-sidebar__label">Campaign Studio</span>
-            <PhaseBadge label="P1" />
-          </button>
+              title="Campaign Studio"
+              aria-label="Campaign Studio"
+              onClick={() => expandSection(setStudioOpen)}
+            >
+              <span className="app-sidebar__chevron-slot" aria-hidden="true" />
+              <StudioIcon className="app-sidebar__icon" />
+              <span className="app-sidebar__label">Campaign Studio</span>
+              <PhaseBadge label="P1" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={[
+                'app-sidebar__item app-sidebar__item--phase',
+                studioActive || studioChildActive ? 'is-current' : '',
+              ].join(' ')}
+              aria-expanded={studioOpen}
+              aria-controls={studioPanelId}
+              onClick={() => setStudioOpen((open) => !open)}
+            >
+              <ChevronIcon
+                className={[
+                  'app-sidebar__chevron',
+                  studioOpen ? 'is-open' : '',
+                ].join(' ')}
+              />
+              <StudioIcon className="app-sidebar__icon" />
+              <span className="app-sidebar__label">Campaign Studio</span>
+              <PhaseBadge label="P1" />
+            </button>
+          )}
           <NavChildren
             id={studioPanelId}
-            open={studioOpen}
+            open={!collapsed && studioOpen}
             items={studioChildren}
             phase="p1"
           />
@@ -383,14 +475,19 @@ export default function Sidebar() {
               intelligenceActive ? 'is-active' : '',
             ].join(' ')}
             aria-current={intelligenceActive ? 'page' : undefined}
-            aria-expanded={intelligenceOpen}
+            aria-expanded={collapsed ? undefined : intelligenceOpen}
+            title="Marketing Intelligence"
           >
-            <ChevronIcon
-              className={[
-                'app-sidebar__chevron',
-                intelligenceOpen ? 'is-open' : '',
-              ].join(' ')}
-            />
+            {collapsed ? (
+              <span className="app-sidebar__chevron-slot" aria-hidden="true" />
+            ) : (
+              <ChevronIcon
+                className={[
+                  'app-sidebar__chevron',
+                  intelligenceOpen ? 'is-open' : '',
+                ].join(' ')}
+              />
+            )}
             <InsightIcon className="app-sidebar__icon" />
             <span className="app-sidebar__label">Marketing Intelligence</span>
             <PhaseBadge label="P2" />
@@ -400,28 +497,45 @@ export default function Sidebar() {
         <div className="app-sidebar__divider" role="separator" />
 
         <div className="app-sidebar__group">
-          <button
-            type="button"
-            className={[
-              'app-sidebar__item app-sidebar__item--phase',
-              workspaceChildActive ? 'is-current' : '',
-            ].join(' ')}
-            aria-expanded={workspaceOpen}
-            aria-controls={workspacePanelId}
-            onClick={() => setWorkspaceOpen((open) => !open)}
-          >
-            <ChevronIcon
+          {collapsed ? (
+            <button
+              type="button"
               className={[
-                'app-sidebar__chevron',
-                workspaceOpen ? 'is-open' : '',
+                'app-sidebar__item app-sidebar__item--phase',
+                workspaceChildActive ? 'is-current is-active' : '',
               ].join(' ')}
-            />
-            <WorkspaceIcon className="app-sidebar__icon" />
-            <span className="app-sidebar__label">Workspace</span>
-          </button>
+              title="Workspace"
+              aria-label="Workspace"
+              onClick={() => expandSection(setWorkspaceOpen)}
+            >
+              <span className="app-sidebar__chevron-slot" aria-hidden="true" />
+              <WorkspaceIcon className="app-sidebar__icon" />
+              <span className="app-sidebar__label">Workspace</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={[
+                'app-sidebar__item app-sidebar__item--phase',
+                workspaceChildActive ? 'is-current' : '',
+              ].join(' ')}
+              aria-expanded={workspaceOpen}
+              aria-controls={workspacePanelId}
+              onClick={() => setWorkspaceOpen((open) => !open)}
+            >
+              <ChevronIcon
+                className={[
+                  'app-sidebar__chevron',
+                  workspaceOpen ? 'is-open' : '',
+                ].join(' ')}
+              />
+              <WorkspaceIcon className="app-sidebar__icon" />
+              <span className="app-sidebar__label">Workspace</span>
+            </button>
+          )}
           <NavChildren
             id={workspacePanelId}
-            open={workspaceOpen}
+            open={!collapsed && workspaceOpen}
             items={workspaceChildren}
             phase="p0"
           />
